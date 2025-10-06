@@ -1,163 +1,75 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
 
-export default StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8F2',
-    paddingHorizontal: 20,
-    paddingTop: 40,
+    backgroundColor: "#FFF8F2",
+    paddingHorizontal: 18,
+    paddingTop: 30,
   },
 
-  // ----- Header -----
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  profile: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  avatarPlaceholder: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#E3D5C6',
-    borderWidth: 2,
-    borderColor: '#FFF',
-    elevation: 3,
-    shadowColor: '#9B6B43',
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#4A2E14',
-    letterSpacing: 0.2,
-  },
-  subText: {
-    fontSize: 13,
-    color: '#8E735A',
-    opacity: 0.85,
-  },
-  logoCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#9B6B43',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#9B6B43',
-    shadowOpacity: 0.25,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 5,
-    elevation: 6,
-  },
-  logoText: {
-    color: '#FFF',
+  headerTitle: {
     fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-
-  // ----- Points Card -----
-  pointsCard: {
-    backgroundColor: '#9B6B43',
-    borderRadius: 24,
-    paddingVertical: 28,
-    paddingHorizontal: 30,
-    marginBottom: 30,
-    shadowColor: '#9B6B43',
-    shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 8,
-    elevation: 8,
-    overflow: 'hidden',
-  },
-  iconOverlay: {
-    position: 'absolute',
-    right: -30,
-    bottom: -30,
-    width: 220,
-    height: 220,
-    opacity: 0.12,
-    transform: [{ rotate: '-15deg' }],
-    resizeMode: 'contain',
-  },
-  pointsLabel: {
-    fontSize: 14,
-    color: '#FBEDE1',
-    marginBottom: 6,
-    letterSpacing: 0.5,
-    zIndex: 2,
-  },
-  pointsValue: {
-    fontSize: 36,
-    fontWeight: '800',
-    color: '#FFF',
-    marginBottom: 8,
-    letterSpacing: 0.5,
-    zIndex: 2,
-  },
-  lastTransaction: {
-    fontSize: 13,
-    color: '#FBEDE1',
-    opacity: 0.9,
-    fontStyle: 'italic',
-    zIndex: 2,
-  },
-
-  // ----- Service Card -----
-  serviceCard: {
-    backgroundColor: '#FFF',
-    borderRadius: 22,
-    padding: 16,
+    fontWeight: "700",
+    color: "#4A2E14",
     marginBottom: 20,
-    shadowColor: '#9B6B43',
+    letterSpacing: 0.4,
+  },
+
+  // ---- CARD ----
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    marginBottom: 18,
+    overflow: "hidden",
+    shadowColor: "#9B6B43",
     shadowOpacity: 0.08,
     shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 6,
-    elevation: 4,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  serviceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 14,
+
+  cardImage: {
+    width: "100%",
+    height: 180,
   },
-  serviceTitle: {
+
+  cardFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    backgroundColor: "#FFF8F2",
+    borderTopWidth: 1,
+    borderTopColor: "#EFE2D2",
+  },
+
+  cardTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#4A2E14',
-    letterSpacing: 0.2,
+    fontWeight: "600",
+    color: "#4A2E14",
+    letterSpacing: 0.3,
   },
+
   pointsTag: {
-    backgroundColor: '#9B6B43',
+    backgroundColor: "#9B6B43",
     borderRadius: 14,
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 5,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
   },
-  pointsTagText: {
-    color: '#FFF',
-    fontWeight: '600',
-    fontSize: 12,
+  pointsText: {
+    color: "#FFF",
+    fontWeight: "600",
+    fontSize: 13,
     letterSpacing: 0.5,
   },
-  imagePlaceholder: {
-    backgroundColor: '#F3E6D9',
-    borderRadius: 16,
-    height: 140,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E8D6C0',
-  },
-  imagePlaceholderText: {
-    color: '#A88B73',
-    fontSize: 13,
-    fontStyle: 'italic',
+
+  footerSpace: {
+    height: 40,
   },
 });
+
+export default styles;

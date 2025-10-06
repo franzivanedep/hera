@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image } from 'react-native';
-import styles from './styles/RewardsPageStyles';
+import styles from './styles/RedeemPageStyles';
 
 const Header = () => (
   <View style={styles.header}>
