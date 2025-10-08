@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
@@ -48,6 +48,23 @@ export default function TabLayout() {
               size={24}
               color={color}
             />
+          ),
+        }}
+      />
+
+      {/* 🔍 Simplified QR Scanner (center standout) */}
+      <Tabs.Screen
+        name="qrscanner"
+        options={{
+          title: '',
+          tabBarIcon: ({ focused }) => (
+            <View style={styles.qrButton}>
+              <Ionicons
+                name="scan-outline"
+                size={30}
+                color="#fff"
+              />
+            </View>
           ),
         }}
       />
@@ -105,9 +122,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
-
-    // 🧊 iOS glass effect fallback (for supported devices)
-    backdropFilter: 'blur(10px)',
     elevation: 10,
   },
 
@@ -121,5 +135,19 @@ const styles = StyleSheet.create({
   androidShadow: {
     elevation: 8,
   },
-});
 
+  qrButton: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: '#5a4634', // standout dark brown
+    justifyContent: 'center',
+    alignItems: 'center',
+    top: -25, // lifted above tab bar
+    shadowColor: '#5a4634',
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 10,
+  },
+});
