@@ -1,14 +1,15 @@
 import { StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
+  // ===== CONTAINER =====
   container: {
     flex: 1,
-    backgroundColor: '#F8F1E4', // soft beige theme
+    backgroundColor: '#FAF7F2', // soft neutral beige background
   },
 
-  // ===== HEADER =====
+  // ===== HEADER (unchanged) =====
   header: {
-    height: 220, // bigger hero header
+    height: 220,
     width: '100%',
     borderBottomLeftRadius: 35,
     borderBottomRightRadius: 35,
@@ -24,7 +25,7 @@ export default StyleSheet.create({
   },
   headerOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(158, 126, 99, 0.85)', // warm brown tint overlay
+    backgroundColor: 'rgba(158, 126, 99, 0.85)',
   },
   headerContent: {
     flex: 1,
@@ -54,15 +55,13 @@ export default StyleSheet.create({
 
   // ===== POINTS CARD =====
   pointsCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     marginHorizontal: 25,
     marginTop: -35,
-    borderRadius: 20,
+    borderRadius: 24,
     padding: 24,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    borderWidth: 1,
+    borderColor: '#EAE3D9',
   },
   pointsTop: {
     flexDirection: 'row',
@@ -70,28 +69,29 @@ export default StyleSheet.create({
     alignItems: 'center',
   },
   pointsLabel: {
-    fontSize: 18,
+    fontSize: 17,
     color: '#8B7355',
     fontWeight: '500',
   },
   pointsValue: {
-    fontSize: 38,
-    fontWeight: 'bold',
-    color: '#5A4634',
-    marginVertical: 12,
+    fontSize: 42,
+    fontWeight: '800',
+    color: '#4C3C2E',
+    marginVertical: 14,
+    letterSpacing: 0.5,
   },
   detailButton: {
     alignSelf: 'flex-start',
     backgroundColor: '#9E7E63',
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 22,
+    paddingVertical: 10,
+    paddingHorizontal: 22,
+    borderRadius: 16,
   },
   detailButtonText: {
     color: '#fff',
     fontWeight: '600',
     fontSize: 14,
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
   },
 
   // ===== SECTION =====
@@ -108,7 +108,7 @@ export default StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#5A4634',
+    color: '#4C3C2E',
   },
   seeAll: {
     color: '#9E7E63',
@@ -118,24 +118,22 @@ export default StyleSheet.create({
 
   // ===== REWARD CARDS =====
   rewardCard: {
-    borderRadius: 18,
+    borderRadius: 20,
     overflow: 'hidden',
     width: 200,
     height: 150,
     marginRight: 16,
     justifyContent: 'flex-end',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#E5D9CC',
   },
   rewardImage: {
-    borderRadius: 18,
+    borderRadius: 20,
     resizeMode: 'cover',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.25)',
   },
   rewardContent: {
     padding: 14,
@@ -155,31 +153,29 @@ export default StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(158,126,99,0.8)',
+    backgroundColor: 'rgba(158,126,99,0.9)',
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingVertical: 5,
+    borderRadius: 14,
   },
 
-  // ===== PLAIN REWARDS =====
+  // ===== PLAIN REWARD CARDS =====
   rewardCardPlain: {
-    backgroundColor: '#fff',
-    borderRadius: 18,
-    padding: 16,
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    padding: 18,
     width: 200,
     height: 150,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#EAE3D9',
   },
   rewardTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#5A4634',
+    color: '#4C3C2E',
     textAlign: 'center',
     marginBottom: 6,
   },
@@ -193,7 +189,7 @@ export default StyleSheet.create({
     marginTop: 4,
     backgroundColor: 'rgba(158,126,99,0.1)',
     paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: 10,
   },
 });
