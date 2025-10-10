@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ImageBackground } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface Branch {
   id: string;
@@ -33,19 +34,29 @@ const BranchesScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Our Branches</Text>
+
       <FlatList
         data={branches}
         keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card}>
-            <Image source={item.image} style={styles.image} />
-            <View style={styles.cardContent}>
-              <Text style={styles.branchName}>{item.name}</Text>
-              <Text style={styles.address}>{item.address}</Text>
-            </View>
+          <TouchableOpacity style={styles.card} activeOpacity={0.9}>
+            <ImageBackground source={item.image} style={styles.image} imageStyle={{ borderRadius: 20 }}>
+              <View style={styles.overlay} />
+              <View style={styles.cardContent}>
+                <Text style={styles.branchName}>{item.name}</Text>
+                <View style={styles.locationRow}>
+                  <Ionicons name="location-outline" size={18} color="#fff" />
+                  <Text style={styles.address}>{item.address}</Text>
+                </View>
+                <TouchableOpacity style={styles.button}>
+                  <Text style={styles.buttonText}>View Details</Text>
+                </TouchableOpacity>
+              </View>
+            </ImageBackground>
           </TouchableOpacity>
         )}
-        showsVerticalScrollIndicator={false}
       />
     </View>
   );
@@ -56,41 +67,65 @@ export default BranchesScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F8F1E4", // soft beige
     paddingTop: 60,
     paddingHorizontal: 20,
   },
   header: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "700",
-    color: "#5a4634",
-    marginBottom: 20,
+    color: "#5A4634",
+    marginBottom: 25,
+    textAlign: "left",
   },
   card: {
-    backgroundColor: "#f9f9f9",
     borderRadius: 20,
-    marginBottom: 20,
     overflow: "hidden",
+    marginBottom: 25,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 3,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
   },
   image: {
     width: "100%",
-    height: 160,
+    height: 220,
+    justifyContent: "flex-end",
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.3)", // dark overlay for readability
+    borderRadius: 20,
   },
   cardContent: {
-    padding: 15,
+    padding: 20,
   },
   branchName: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#5a4634",
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#fff",
+    marginBottom: 6,
+  },
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
   },
   address: {
+    color: "#fff",
     fontSize: 14,
-    color: "#7b7b7b",
-    marginTop: 4,
+    marginLeft: 5,
+  },
+  button: {
+    alignSelf: "flex-start",
+    backgroundColor: "#E8D8C3",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  buttonText: {
+    color: "#5A4634",
+    fontWeight: "600",
+    fontSize: 14,
   },
 });

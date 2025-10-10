@@ -18,15 +18,18 @@ export const useTabLayoutLogic = () => {
         name: 'branch',
         title: 'Branch',
         icon: (color: string, focused: boolean) => (
-          <Ionicons name={focused ? 'business' : 'business-outline'} size={24} color={color} />
-        ),
+ <Ionicons
+      name={focused ? 'storefront' : 'storefront-outline'}
+      size={24}
+      color={color}
+    />        ),
       },
       {
         name: 'qr',
         title: '',
         icon: () => (
           <View style={styles.qrButton}>
-            <Ionicons name="scan-outline" size={30} color="#fff" />
+            <Ionicons name="qr-code-outline" size={30} color="#fff" />
           </View>
         ),
       },

@@ -1,13 +1,12 @@
 import { StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
-  // ===== CONTAINER =====
   container: {
     flex: 1,
-    backgroundColor: '#FAF7F2', // soft neutral beige background
+    backgroundColor: '#FAF7F2',
   },
 
-  // ===== HEADER (unchanged) =====
+  // ===== HEADER =====
   header: {
     height: 220,
     width: '100%',
@@ -39,13 +38,11 @@ export default StyleSheet.create({
     fontSize: 28,
     fontWeight: '800',
     color: '#fff',
-    letterSpacing: 0.5,
   },
   subText: {
     color: '#F3E9DD',
     fontSize: 16,
     marginTop: 4,
-    letterSpacing: 0.3,
   },
   bellButton: {
     backgroundColor: 'rgba(255,255,255,0.25)',
@@ -54,69 +51,101 @@ export default StyleSheet.create({
   },
 
   // ===== POINTS CARD =====
-  pointsCard: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 25,
+  pointsContainer: {
+    alignItems: 'center',
     marginTop: -35,
-    borderRadius: 24,
-    padding: 24,
+  },
+  pointsCard: {
+    width: '85%',
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    paddingVertical: 24,
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#EAE3D9',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 3,
   },
-  pointsTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  pointsLabel: {
-    fontSize: 17,
+  pointsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#8B7355',
-    fontWeight: '500',
+    marginBottom: 5,
   },
   pointsValue: {
-    fontSize: 42,
+    fontSize: 38,
     fontWeight: '800',
     color: '#4C3C2E',
-    marginVertical: 14,
-    letterSpacing: 0.5,
-  },
-  detailButton: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#9E7E63',
-    paddingVertical: 10,
-    paddingHorizontal: 22,
-    borderRadius: 16,
-  },
-  detailButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 14,
-    letterSpacing: 0.4,
   },
 
-  // ===== SECTION =====
+  // ===== ACTION GRID =====
+  actionContainer: {
+    backgroundColor: '#FFF9F2',
+    borderRadius: 20,
+    paddingVertical: 25,
+    paddingHorizontal: 20,
+    marginHorizontal: 16,
+    marginTop: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  actionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 25,
+  },
+  actionButton: {
+    width: '30%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconWrapper: {
+    backgroundColor: '#FCEBE3',
+    padding: 18,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  actionText: {
+    fontSize: 13,
+    color: '#4B3F2F',
+    marginTop: 10,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+
+  // ===== REWARD CARDS =====
   section: {
-    marginTop: 35,
-    paddingHorizontal: 25,
+    marginTop: 30,
+    paddingHorizontal: 20,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 15,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#4C3C2E',
   },
   seeAll: {
-    color: '#9E7E63',
-    fontWeight: '600',
     fontSize: 13,
+    fontWeight: '600',
+    color: '#9E7E63',
   },
-
-  // ===== REWARD CARDS =====
   rewardCard: {
     borderRadius: 20,
     overflow: 'hidden',
@@ -158,8 +187,6 @@ export default StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 14,
   },
-
-  // ===== PLAIN REWARD CARDS =====
   rewardCardPlain: {
     backgroundColor: '#FFF',
     borderRadius: 20,

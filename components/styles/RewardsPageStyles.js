@@ -1,75 +1,67 @@
 import { StyleSheet } from "react-native";
 
-const styles = StyleSheet.create({
+export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFF8F2",
-    paddingHorizontal: 18,
-    paddingTop: 30,
+    backgroundColor: "#F9F9F9",
   },
 
+  // ===== HEADER =====
+  headerContainer: {
+    width: "100%",
+    height: 160,
+    borderBottomWidth: 1,
+    borderBottomColor: "#EDEDED",
+    position: "relative",
+  },
+  headerImage: {
+    width: "100%",
+    height: "100%",
+  },
   headerTitle: {
-    fontSize: 22,
+    position: "absolute",
+    bottom: 10,
+    left: 16,
+    fontSize: 24,
     fontWeight: "700",
-    color: "#4A2E14",
-    marginBottom: 20,
-    letterSpacing: 0.4,
+    color: "#fff",
+    textShadowColor: "rgba(0,0,0,0.2)",
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
   },
 
-  // ---- CARD ----
+  // ===== REWARD CARD =====
   card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    marginBottom: 18,
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    marginHorizontal: 16,
+    marginTop: 16,
     overflow: "hidden",
-    shadowColor: "#9B6B43",
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
-    elevation: 5,
+    elevation: 2,
   },
-
   cardImage: {
     width: "100%",
-    height: 180,
+    height: 130,
   },
-
-  cardFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    backgroundColor: "#FFF8F2",
-    borderTopWidth: 1,
-    borderTopColor: "#EFE2D2",
+  cardContent: {
+    padding: 14,
   },
-
   cardTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#4A2E14",
-    letterSpacing: 0.3,
+    color: "#3C2E23",
   },
-
-  pointsTag: {
-    backgroundColor: "#9B6B43",
-    borderRadius: 14,
+  pointsRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 5,
-    paddingHorizontal: 12,
+    marginTop: 6,
   },
   pointsText: {
-    color: "#FFF",
-    fontWeight: "600",
     fontSize: 13,
-    letterSpacing: 0.5,
+    marginLeft: 4,
+    color: "#5A4634",
   },
-
   footerSpace: {
     height: 40,
   },
 });
-
-export default styles;
