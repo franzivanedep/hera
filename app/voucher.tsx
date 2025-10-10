@@ -20,13 +20,7 @@ const VoucherScreen = () => {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#3C2E23" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>E-Voucher</Text>
-        <View style={{ width: 24 }} /> {/* spacer for alignment */}
-      </View>
+    
 
       {/* Card */}
       <View style={styles.card}>
