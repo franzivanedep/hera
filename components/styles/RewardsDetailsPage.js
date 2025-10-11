@@ -62,27 +62,13 @@ export default StyleSheet.create({
   },
 
   modalContent: {
-    backgroundColor: "#FFF",
-    padding: 24,
-    borderRadius: 14,
-    alignItems: "center",
-    width: 200,
-  },
-
-   // ===== Modal Shared =====
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
     backgroundColor: "#F9F5EE",
     padding: 30,
     borderRadius: 20,
     alignItems: "center",
     width: "80%",
   },
+
   modalText: {
     marginTop: 12,
     color: "#5A4634",
@@ -139,5 +125,27 @@ export default StyleSheet.create({
     fontSize: 15,
     letterSpacing: 0.5,
   },
+  header: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  backgroundColor: "#F8F1E4",
+  paddingTop: 45,
+  paddingBottom: 12,
+  paddingHorizontal: 20,
+  borderBottomWidth: 1,
+  borderColor: "#E8DCC5",
+  elevation: 2,
+},
+backButton: {
+  padding: 6,
+  borderRadius: 10,
+  backgroundColor: "#F3EAD9",
+},
+headerTitle: {
+  fontSize: 16,
+  fontWeight: "700",
+  color: "#3C2E23",
+},
 
 });

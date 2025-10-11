@@ -37,56 +37,71 @@ const rewardsData: Reward[] = [
     description:
       "Add volume and elegance with our gentle eyelash extensions designed for comfort and beauty.",
   },
+  {
+    id: 4,
+    title: "Foot Spa Treatment",
+    image: require("../assets/images/nail1.jpeg"),
+    points: 150,
+    description:
+      "Relax and refresh your feet with our gentle spa and exfoliating treatment.",
+  },
 ];
 
 const RewardsPage: React.FC = () => {
   const router = useRouter();
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header */}
-      <View style={styles.headerContainer}>
-        <Image
-          source={require("../assets/images/header.jpg")}
-          style={styles.headerImage}
-          resizeMode="cover"
-        />
-        <Text style={styles.headerTitle}>Rewards</Text>
-      </View>
+    <View style={styles.container}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent} // ✅ ensures full scroll area
+      >
+        {/* Header Image */}
+        <View style={styles.headerCard}>
+          <Image
+            source={require("../assets/images/header.jpg")}
+            style={styles.headerImage}
+            resizeMode="cover"
+          />
+        </View>
 
-      {/* Rewards List */}
-      {rewardsData.map((reward) => (
-        <TouchableOpacity
-          key={reward.id}
-          style={styles.card}
-          activeOpacity={0.9}
-          onPress={() =>
-            router.push({
-              pathname: "/details",
-              params: {
-                title: reward.title,
-                image: reward.image,
-                points: reward.points.toString(),
-                description: reward.description,
-              },
-            })
-          }
-        >
-          <Image source={reward.image} style={styles.cardImage} />
+        {/* Page Title */}
+        <Text style={styles.pageTitle}>Rewards</Text>
 
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>{reward.title}</Text>
+        {/* Rewards List */}
+        {rewardsData.map((reward) => (
+          <TouchableOpacity
+            key={reward.id}
+            style={styles.card}
+            activeOpacity={0.9}
+            onPress={() =>
+              router.push({
+                pathname: "/details",
+                params: {
+                  title: reward.title,
+                  image: reward.image,
+                  points: reward.points.toString(),
+                  description: reward.description,
+                },
+              })
+            }
+          >
+            <Image source={reward.image} style={styles.cardImage} />
+            <View style={styles.cardContent}>
+              <Text style={styles.cardTitle}>{reward.title}</Text>
 
-            <View style={styles.pointsRow}>
-              <Ionicons name="star" size={14} color="#5A4634" />
-              <Text style={styles.pointsText}>{reward.points} pts</Text>
+              <View style={styles.pointsRow}>
+                <Ionicons name="star" size={14} color="#8B6F47" />
+                <Text style={styles.pointsText}>{reward.points} pts</Text>
+              </View>
             </View>
-          </View>
-        </TouchableOpacity>
-      ))}
+          </TouchableOpacity>
+        ))}
 
-      <View style={styles.footerSpace} />
-    </ScrollView>
+        {/* Extra Space at Bottom */}
+        <View style={styles.footerSpace} />
+      </ScrollView>
+    </View>
   );
 };
 

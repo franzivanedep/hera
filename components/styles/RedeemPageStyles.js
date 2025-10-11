@@ -125,6 +125,46 @@ export default StyleSheet.create({
     textAlign: 'center',
   },
 
+  // ===== PROMO BANNER =====
+  promoContainer: {
+    marginTop: 20,
+    marginHorizontal: 20,
+    borderRadius: 20,
+    overflow: 'hidden',
+    height: 180,
+  },
+  promoBanner: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  promoImage: {
+    borderRadius: 20,
+    resizeMode: 'cover',
+  },
+  promoOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+  },
+  promoContent: {
+    alignItems: 'center',
+    paddingHorizontal: 15,
+  },
+  promoTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  promoSubtitle: {
+    color: '#fff',
+    fontSize: 14,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },
+
   // ===== REWARD CARDS =====
   section: {
     marginTop: 30,

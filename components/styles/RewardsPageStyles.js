@@ -3,65 +3,68 @@ import { StyleSheet } from "react-native";
 export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9F9F9",
+    backgroundColor: "#F8F1E4", // beige
+  },
+
+  scrollContent: {
+    paddingBottom: 60, // ✅ ensures last card is scrollable fully
   },
 
   // ===== HEADER =====
-  headerContainer: {
-    width: "100%",
-    height: 160,
-    borderBottomWidth: 1,
-    borderBottomColor: "#EDEDED",
-    position: "relative",
+  headerCard: {
+    backgroundColor: "#FFF9F2",
+    borderRadius: 16,
+    marginHorizontal: 18,
+    marginTop: 50, // lowered
+    overflow: "hidden",
   },
   headerImage: {
     width: "100%",
-    height: "100%",
+    height: 160,
+    borderRadius: 16,
   },
-  headerTitle: {
-    position: "absolute",
-    bottom: 10,
-    left: 16,
-    fontSize: 24,
+
+  // ===== PAGE TITLE =====
+  pageTitle: {
+    fontSize: 26,
     fontWeight: "700",
-    color: "#fff",
-    textShadowColor: "rgba(0,0,0,0.2)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
+    color: "#5A4634",
+    marginTop: 18,
+    marginLeft: 22,
+    marginBottom: 8,
   },
 
   // ===== REWARD CARD =====
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    marginHorizontal: 16,
+    backgroundColor: "#FFF9F2",
+    borderRadius: 16,
+    marginHorizontal: 18,
     marginTop: 16,
     overflow: "hidden",
-    elevation: 2,
   },
   cardImage: {
     width: "100%",
     height: 130,
   },
   cardContent: {
-    padding: 14,
+    padding: 16,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "600",
     color: "#3C2E23",
   },
   pointsRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 6,
+    marginTop: 8,
   },
   pointsText: {
-    fontSize: 13,
-    marginLeft: 4,
-    color: "#5A4634",
+    fontSize: 14,
+    marginLeft: 6,
+    color: "#8B6F47",
   },
   footerSpace: {
-    height: 40,
+    height: 100, // ✅ ensures safe scroll end spacing
   },
 });

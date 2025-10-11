@@ -2,7 +2,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { View } from 'react-native';
 import React from 'react';
-import styles from './styles/TabStyles';
+import styles from '../styles/TabStyles';  
 
 export const useTabLayoutLogic = () => {
   return {

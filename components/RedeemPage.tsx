@@ -1,17 +1,53 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
   ImageBackground,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import styles from './styles/RedeemPageStyles';
 
 export default function RewardsPage() {
+  // === Auto-changing promo images and text ===
+  const promos = [
+    {
+      image: require('../assets/images/header.jpg'),
+      title: '✨ October Promo ✨',
+      subtitle: 'Get 20% OFF all manicure packages this week only!',
+    },
+    {
+      image: require('../assets/images/nail1.jpeg'),
+      title: '💅 Refer a Friend 💅',
+      subtitle: 'Earn 100 bonus points when your friend books a session!',
+    },
+    {
+      image: require('../assets/images/header.jpg'),
+      title: '🌸 New Arrivals 🌸',
+      subtitle: 'Discover our latest nail polish shades!',
+    },
+  ];
+
+  const [currentPromo, setCurrentPromo] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentPromo((prev) => (prev + 1) % promos.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{
+        paddingBottom: 80,
+        flexGrow: 1,
+      }}
+    >
       {/* ===== HEADER ===== */}
       <ImageBackground
         source={require('../assets/images/nail1.jpeg')}
@@ -56,8 +92,23 @@ export default function RewardsPage() {
         </View>
       </View>
 
+      {/* ===== SINGLE AUTO-CHANGING PROMO BANNER ===== */}
+      <View style={styles.promoContainer}>
+        <ImageBackground
+          source={promos[currentPromo].image}
+          style={styles.promoBanner}
+          imageStyle={styles.promoImage}
+        >
+          <View style={styles.promoOverlay} />
+          <View style={styles.promoContent}>
+            <Text style={styles.promoTitle}>{promos[currentPromo].title}</Text>
+            <Text style={styles.promoSubtitle}>{promos[currentPromo].subtitle}</Text>
+          </View>
+        </ImageBackground>
+      </View>
+
       {/* ===== PERIOD’S GIFT SECTION ===== */}
-      <View style={styles.section}>
+      <View style={[styles.section, { marginBottom: 40 }]}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>This Period’s Gift</Text>
           <TouchableOpacity>
@@ -78,16 +129,9 @@ export default function RewardsPage() {
           >
             <View style={styles.overlay} />
             <View style={styles.rewardContent}>
-              <Text style={styles.rewardTitlePrimary}>
-                Luxury Manicure Session
-              </Text>
+              <Text style={styles.rewardTitlePrimary}>Luxury Manicure Session</Text>
               <View style={styles.pointsTag}>
-                <Ionicons
-                  name="star"
-                  size={14}
-                  color="#fff"
-                  style={{ marginRight: 4 }}
-                />
+                <Ionicons name="star" size={14} color="#fff" style={{ marginRight: 4 }} />
                 <Text style={styles.rewardPointsPrimary}>500 pts</Text>
               </View>
             </View>

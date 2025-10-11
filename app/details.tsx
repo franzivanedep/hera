@@ -8,20 +8,18 @@ import {
   Modal,
   ActivityIndicator,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router"; // ✅ useRouter imported here
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import styles from "../components/styles/RewardsDetailsPage";
 
 const RewardDetail: React.FC = () => {
   const { title, image, description, points } = useLocalSearchParams();
-  const router = useRouter(); // ✅ Initialize the router hook
+  const router = useRouter();
   const [loadingModalVisible, setLoadingModalVisible] = useState(false);
   const [voucherModalVisible, setVoucherModalVisible] = useState(false);
 
   const handleRedeem = () => {
     setLoadingModalVisible(true);
-
-    // simulate redeem process
     setTimeout(() => {
       setLoadingModalVisible(false);
       setVoucherModalVisible(true);
@@ -69,14 +67,28 @@ const RewardDetail: React.FC = () => {
               Time to treat yourself! Flash this E-Voucher at the store and redeem your reward.
             </Text>
 
+            {/* View E-Voucher Button */}
             <TouchableOpacity
               style={styles.voucherButton}
               onPress={() => {
                 setVoucherModalVisible(false);
-                router.push("/voucher"); // ✅ router is now defined
+                router.push("/voucher");
               }}
             >
               <Text style={styles.voucherButtonText}>View E-Voucher</Text>
+            </TouchableOpacity>
+
+            {/* ✅ Back to Home Button */}
+            <TouchableOpacity
+              style={[styles.voucherButton, { backgroundColor: "#C9B79C", marginTop: 10 }]}
+              onPress={() => {
+                setVoucherModalVisible(false);
+                router.push("/"); // navigate to home (index)
+              }}
+            >
+              <Text style={[styles.voucherButtonText, { color: "#5A4634" }]}>
+                Back to Home
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -86,4 +98,3 @@ const RewardDetail: React.FC = () => {
 };
 
 export default RewardDetail;
-  
