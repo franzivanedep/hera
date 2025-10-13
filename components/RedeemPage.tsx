@@ -5,12 +5,14 @@ import {
   TouchableOpacity,
   ScrollView,
   ImageBackground,
-  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import styles from './styles/RedeemPageStyles';
 
 export default function RewardsPage() {
+  const router = useRouter();
+
   // === Auto-changing promo images and text ===
   const promos = [
     {
@@ -38,6 +40,14 @@ export default function RewardsPage() {
     }, 4000);
     return () => clearInterval(interval);
   }, []);
+
+  type RoutePath = '/referrals' | null;
+
+  const actions: { icon: any; text: string; route: RoutePath }[] = [
+    { icon: 'document-text-outline', text: 'Survey', route: null },
+    { icon: 'qr-code-outline', text: 'Scan QR Code', route: null },
+    { icon: 'people-outline', text: 'Invite Friends', route: '/referrals' },
+  ];
 
   return (
     <ScrollView
@@ -77,12 +87,14 @@ export default function RewardsPage() {
       {/* ===== ACTION GRID ===== */}
       <View style={styles.actionContainer}>
         <View style={styles.actionGrid}>
-          {[
-            { icon: 'document-text-outline', text: 'Survey' },
-            { icon: 'qr-code-outline', text: 'Scan QR Code' },
-            { icon: 'people-outline', text: 'Invite Friends' },
-          ].map((item, index) => (
-            <TouchableOpacity key={index} style={styles.actionButton}>
+          {actions.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.actionButton}
+              onPress={() => {
+                if (item.route) router.push(item.route);
+              }}
+            >
               <View style={styles.iconWrapper}>
                 <Ionicons name={item.icon as any} size={28} color="#9E7E63" />
               </View>
@@ -102,7 +114,9 @@ export default function RewardsPage() {
           <View style={styles.promoOverlay} />
           <View style={styles.promoContent}>
             <Text style={styles.promoTitle}>{promos[currentPromo].title}</Text>
-            <Text style={styles.promoSubtitle}>{promos[currentPromo].subtitle}</Text>
+            <Text style={styles.promoSubtitle}>
+              {promos[currentPromo].subtitle}
+            </Text>
           </View>
         </ImageBackground>
       </View>
@@ -129,9 +143,16 @@ export default function RewardsPage() {
           >
             <View style={styles.overlay} />
             <View style={styles.rewardContent}>
-              <Text style={styles.rewardTitlePrimary}>Luxury Manicure Session</Text>
+              <Text style={styles.rewardTitlePrimary}>
+                Luxury Manicure Session
+              </Text>
               <View style={styles.pointsTag}>
-                <Ionicons name="star" size={14} color="#fff" style={{ marginRight: 4 }} />
+                <Ionicons
+                  name="star"
+                  size={14}
+                  color="#fff"
+                  style={{ marginRight: 4 }}
+                />
                 <Text style={styles.rewardPointsPrimary}>500 pts</Text>
               </View>
             </View>
