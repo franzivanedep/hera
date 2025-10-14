@@ -1,13 +1,22 @@
-import React from 'react';
-import { SafeAreaView, StatusBar } from 'react-native';
-import RedeemPage from '../../components/RedeemPage';
+import React from "react";
+import { SafeAreaView, StatusBar } from "react-native";
+import useRewardsPageLogic from "../../components/logics/useRedeemPage";
+import RewardsPageView from "../../components/RedeemPage";
 
+const RewardsPageController: React.FC = () => {
+  const { userName, promos, actions, currentPromo } = useRewardsPageLogic();
 
-export default function App() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFF8F2" />
-      <RedeemPage />
+      <RewardsPageView
+        userName={userName}
+        promos={promos}
+        actions={actions}
+        currentPromo={currentPromo}
+      />
     </SafeAreaView>
   );
-}
+};
+
+export default RewardsPageController;

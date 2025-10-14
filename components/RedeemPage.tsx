@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -8,79 +8,23 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import styles from "./styles/RedeemPageStyles";
+import styles from "../components/styles/RedeemPageStyles";
+import { Promo, ActionItem } from "../components/logics/useRedeemPage";
 
-type Promo = {
-  image: any;
-  title: string;
-  subtitle: string;
+type RewardsPageViewProps = {
+  userName: string;
+  promos: Promo[];
+  actions: ActionItem[];
+  currentPromo: number;
 };
 
-type ActionItem = {
-  icon: keyof typeof Ionicons.glyphMap;
-  text: string;
-  route: "/referrals" | null;
-};
-
-export default function RewardsPage() {
+const RewardsPageView: React.FC<RewardsPageViewProps> = ({
+  userName,
+  promos,
+  actions,
+  currentPromo,
+}) => {
   const router = useRouter();
-  const [userName, setUserName] = useState<string>("Guest");
-  const [currentPromo, setCurrentPromo] = useState<number>(0);
-
-  // ✅ Get user name or Gmail from Firebase Auth
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
-      if (user) {
-        const display = user.displayName || user.email || "Guest";
-        const name = display.includes("@")
-          ? display.split("@")[0]
-          : display;
-        setUserName(capitalizeFirstLetter(name));
-      } else {
-        setUserName("Guest");
-      }
-    });
-
-    return unsubscribe;
-  }, []);
-
-  // === Helper: Capitalize first letter ===
-  const capitalizeFirstLetter = (str: string) =>
-    str.charAt(0).toUpperCase() + str.slice(1);
-
-  // === Auto-changing promo images and text ===
-  const promos: Promo[] = [
-    {
-      image: require("../assets/images/header.jpg"),
-      title: "✨ October Promo ✨",
-      subtitle: "Get 20% OFF all manicure packages this week only!",
-    },
-    {
-      image: require("../assets/images/nail1.jpeg"),
-      title: "💅 Refer a Friend 💅",
-      subtitle: "Earn 100 bonus points when your friend books a session!",
-    },
-    {
-      image: require("../assets/images/header.jpg"),
-      title: "🌸 New Arrivals 🌸",
-      subtitle: "Discover our latest nail polish shades!",
-    },
-  ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentPromo((prev) => (prev + 1) % promos.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [promos.length]);
-
-  const actions: ActionItem[] = [
-    { icon: "document-text-outline", text: "Survey", route: null },
-    { icon: "qr-code-outline", text: "Scan QR Code", route: null },
-    { icon: "people-outline", text: "Invite Friends", route: "/referrals" },
-  ];
 
   return (
     <ScrollView
@@ -100,7 +44,6 @@ export default function RewardsPage() {
         <View style={styles.headerOverlay} />
         <View style={styles.headerContent}>
           <View>
-            {/* ✅ Dynamically show user name or Gmail */}
             <Text style={styles.greeting}>Hi, {userName}</Text>
             <Text style={styles.subText}>HERA NAIL LOUNGE & SPA</Text>
           </View>
@@ -130,7 +73,7 @@ export default function RewardsPage() {
               }}
             >
               <View style={styles.iconWrapper}>
-                <Ionicons name={item.icon} size={28} color="#9E7E63" />
+                <Ionicons name={item.icon as any} size={28} color="#9E7E63" />
               </View>
               <Text style={styles.actionText}>{item.text}</Text>
             </TouchableOpacity>
@@ -138,7 +81,7 @@ export default function RewardsPage() {
         </View>
       </View>
 
-      {/* ===== SINGLE AUTO-CHANGING PROMO BANNER ===== */}
+      {/* ===== PROMO BANNER ===== */}
       <View style={styles.promoContainer}>
         <ImageBackground
           source={promos[currentPromo].image}
@@ -223,4 +166,6 @@ export default function RewardsPage() {
       </View>
     </ScrollView>
   );
-}
+};
+
+export default RewardsPageView;
