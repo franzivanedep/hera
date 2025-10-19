@@ -1,0 +1,46 @@
+import { StyleSheet } from "react-native";
+
+export const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#F8F1E4" },
+  background: { flex: 1, justifyContent: "center" },
+  overlay: { paddingHorizontal: 30, justifyContent: "center" },
+  brand: {
+    fontSize: 30,
+    fontWeight: "700",
+    color: "#3C2E23",
+    textAlign: "center",
+    marginBottom: 8,
+    letterSpacing: 1,
+  },
+  welcome: { fontSize: 16, color: "#5A4634", textAlign: "center", marginBottom: 24 },
+  input: {
+    backgroundColor: "#F3EDE3",
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 15,
+    color: "#3C2E23",
+    fontSize: 16,
+  },
+  eye: { position: "absolute", right: 12, top: 15, padding: 6 },
+  loginButton: {
+    backgroundColor: "#5A4634",
+    paddingVertical: 15,
+    borderRadius: 12,
+    marginTop: 4,
+    alignItems: "center",
+  },
+  loginText: { color: "#FAF9F7", fontSize: 18, fontWeight: "600" },
+  errorText: { color: "#b3261e", textAlign: "center", marginBottom: 8, fontSize: 13 },
+  forgot: { textAlign: "center", color: "#7D6B5A", marginTop: 10 },
+  orText: { textAlign: "center", color: "#7D6B5A", marginVertical: 15 },
+  googleButton: {
+    backgroundColor: "#E2D6C4",
+    paddingVertical: 15,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  googleText: { color: "#3C2E23", fontSize: 16, fontWeight: "500" },
+  signupRow: { textAlign: "center", color: "#5A4634", marginTop: 18, fontSize: 14 },
+  footerText: { textAlign: "center", color: "#7D6B5A", marginTop: 18, fontSize: 12 },
+  link: { color: "#5A4634", fontWeight: "700", textDecorationLine: "underline" },
+});

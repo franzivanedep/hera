@@ -1,60 +1,29 @@
+// src/screens/RewardsPage.tsx
 import React from "react";
-import { View, Text, Image, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, Image, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import styles from "./styles/RewardsPageStyles";
-
-interface Reward {
-  id: number;
-  title: string;
-  image: any;
-  points: number;
-  description: string;
-}
-
-const rewardsData: Reward[] = [
-  {
-    id: 1,
-    title: "Soft Gel Extension",
-    image: require("../assets/images/nail1.jpeg"),
-    points: 200,
-    description:
-      "Our premium soft gel extension service ensures a natural, lightweight, and long-lasting nail enhancement perfect for everyday style.",
-  },
-  {
-    id: 2,
-    title: "Gel Manicure",
-    image: require("../assets/images/nail1.jpeg"),
-    points: 200,
-    description:
-      "A glossy, chip-free manicure with rich gel colors that last for weeks.",
-  },
-  {
-    id: 3,
-    title: "Eyelash Extension",
-    image: require("../assets/images/nail1.jpeg"),
-    points: 200,
-    description:
-      "Add volume and elegance with our gentle eyelash extensions designed for comfort and beauty.",
-  },
-  {
-    id: 4,
-    title: "Foot Spa Treatment",
-    image: require("../assets/images/nail1.jpeg"),
-    points: 150,
-    description:
-      "Relax and refresh your feet with our gentle spa and exfoliating treatment.",
-  },
-];
+import styles from "../components/styles/RewardsPageStyles";
+import useRewardsLogic from "../components/logics/useRewardLogic";
 
 const RewardsPage: React.FC = () => {
   const router = useRouter();
+  const { rewards, loading } = useRewardsLogic();
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color="#8B6F47" />
+        <Text style={{ marginTop: 10 }}>Loading rewards...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent} // ✅ ensures full scroll area
+        contentContainerStyle={styles.scrollContent}
       >
         {/* Header Image */}
         <View style={styles.headerCard}>
@@ -69,7 +38,7 @@ const RewardsPage: React.FC = () => {
         <Text style={styles.pageTitle}>Rewards</Text>
 
         {/* Rewards List */}
-        {rewardsData.map((reward) => (
+        {rewards.map((reward) => (
           <TouchableOpacity
             key={reward.id}
             style={styles.card}
@@ -78,17 +47,17 @@ const RewardsPage: React.FC = () => {
               router.push({
                 pathname: "/details",
                 params: {
-                  title: reward.title,
-                  image: reward.image,
+                  title: reward.name,
+                  image: reward.image_url,
                   points: reward.points.toString(),
                   description: reward.description,
                 },
               })
             }
           >
-            <Image source={reward.image} style={styles.cardImage} />
+            <Image source={{ uri: reward.image_url }} style={styles.cardImage} />
             <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>{reward.title}</Text>
+              <Text style={styles.cardTitle}>{reward.name}</Text>
 
               <View style={styles.pointsRow}>
                 <Ionicons name="star" size={14} color="#8B6F47" />
@@ -98,7 +67,7 @@ const RewardsPage: React.FC = () => {
           </TouchableOpacity>
         ))}
 
-        {/* Extra Space at Bottom */}
+        {/* Footer Space */}
         <View style={styles.footerSpace} />
       </ScrollView>
     </View>

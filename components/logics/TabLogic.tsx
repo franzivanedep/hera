@@ -26,7 +26,7 @@ export const useTabLayoutLogic = () => {
       },
       {
         name: 'qr',
-        title: 'Qr',
+        title: 'QR',
         icon: () => (
           <View style={styles.qrButton}>
             <Ionicons name="qr-code-outline" size={30} color="#fff" />
