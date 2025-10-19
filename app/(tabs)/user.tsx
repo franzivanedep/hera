@@ -1,6 +1,8 @@
+// app/(tabs)/user.tsx
 import React from "react";
-import { SafeAreaView, StatusBar } from "react-native";
-import UserPage from "../../components/UserPage"; // adjust path based on your folder structure
+import { StatusBar } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context"; 
+import UserPage from "../../components/UserPage";
 
 const User: React.FC = () => {
   return (

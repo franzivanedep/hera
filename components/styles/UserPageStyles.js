@@ -81,4 +81,5 @@ export default StyleSheet.create({
     color: '#A88B73',
     opacity: 0.9,
   },
+
 });
