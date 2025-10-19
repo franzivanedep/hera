@@ -1,6 +1,7 @@
 import { View, Text, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useTransactions } from "../../components/logics/userdata"; //wala pa ito
+// app/user/transactions.tsx
+import { useTransactions } from "../../components/logics/userData";
 
 export default function TransactionsPage() {
   const { data } = useTransactions();

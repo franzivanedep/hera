@@ -1,17 +1,14 @@
-import { router, type Href } from "expo-router";
+// components/logics/usermenu.ts
+import { router } from "expo-router";
+import type { Href } from "expo-router";
 
-export const Routes = {
-  transactions: "/user/transactions",
-  redemptions: "/user/redemptions",
-  activities: "/user/activities",
-  expired: "/user/expired",
-  redeem: "/user/redeem",
-  tour: "/user/tour",
-  help: "/user/help",
-  settings: "/user/settings",
-  legal: "/user/legal",
-} as const;
+export type UserSubRoute =
+  | "transactions" | "redemptions" | "activities" | "expired"
+  | "redeem" | "tour" | "help" | "settings" | "legal";
 
-type UserHref = (typeof Routes)[keyof typeof Routes];
+const userHref = (page: UserSubRoute) => (`/user/${page}` as const);
 
-export const go = (href: UserHref) => router.push(href as Href);
+export const go = (page: UserSubRoute) => {
+  const href = userHref(page);
+  router.push(href as unknown as Href); // safely coerces to Expo Router's Href union
+};

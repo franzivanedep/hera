@@ -4,26 +4,23 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { signOut } from "firebase/auth";
-import { auth } from "../lib/firebase";
-import styles from "../components/styles/UserPageStyles";
-import { Routes, go } from "../components/logics/usermenu";
+import { auth } from "../lib/firebase";                 // sibling folder
+import styles from "./styles/UserPageStyles";            // inside components/styles
+import { go, type UserSubRoute } from "./logics/usermenu";
 
-interface MenuItem {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-}
+interface MenuItem { icon: keyof typeof Ionicons.glyphMap; label: string; }
 
-const hrefMap = {
-  Transactions: Routes.transactions,
-  Redemptions: Routes.redemptions,
-  "Other Activities": Routes.activities,
-  "Expired Points": Routes.expired,
-  "Redeem a Voucher": Routes.redeem,
-  "App Tour": Routes.tour,
-  Help: Routes.help,
-  Settings: Routes.settings,
-  Legal: Routes.legal,
-} as const;
+const routeMap: Record<string, UserSubRoute> = {
+  Transactions: "transactions",
+  Redemptions: "redemptions",
+  "Other Activities": "activities",
+  "Expired Points": "expired",
+  "Redeem a Voucher": "redeem",
+  "App Tour": "tour",
+  Help: "help",
+  Settings: "settings",
+  Legal: "legal",
+};
 
 const UserPage: React.FC = () => {
   const menuItems: MenuItem[] = [
@@ -46,7 +43,7 @@ const UserPage: React.FC = () => {
         onPress: async () => {
           try { await signOut(auth); } catch {}
           try { await AsyncStorage.multiRemove(["session", "token", "profile"]); } catch {}
-          router.replace("/login"); // not "/(auth)/login"
+          router.replace("/login");
         },
       },
     ]);
@@ -70,8 +67,8 @@ const UserPage: React.FC = () => {
             style={styles.menuItem}
             activeOpacity={0.7}
             onPress={() => {
-              const href = hrefMap[item.label as keyof typeof hrefMap];
-              if (href) go(href);
+              const key = routeMap[item.label];
+              if (key) go(key);
             }}
           >
             <View style={styles.menuLeft}>
