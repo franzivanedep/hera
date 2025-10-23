@@ -1,23 +1,89 @@
-import { View, Text, FlatList } from "react-native";
+import { View, Text, FlatList, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-// app/user/transactions.tsx
 import { useTransactions } from "../../components/logics/userData";
 
+const UI = {
+  bg: "#FFF8F2",
+  card: "#FFFFFF",
+  border: "#EEE3D9",
+  text: "#4B3F35",
+  sub: "#7B6A59",
+  iconBg: "#F6EDE5",
+  chev: "#B49A86",
+};
+
 export default function TransactionsPage() {
-  const { data } = useTransactions();
+  const { data } = useTransactions(); 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFF8F2" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: UI.bg }}>
       <FlatList
-        data={data}
+        data={data ?? []}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={{ padding: 16, borderBottomWidth: 1, borderColor: "#EEE3D9" }}>
-            <Text style={{ fontSize: 16, color: "#4B3F35" }}>{item.title}</Text>
-            <Text style={{ color: "#7B6A59" }}>{item.subtitle}</Text>
+        contentContainerStyle={{ padding: 16, gap: 10 }}
+        ListHeaderComponent={
+          <View style={{ paddingBottom: 4 }}>
+            <Text style={{ fontSize: 22, fontWeight: "800", color: UI.text }}>
+              Transactions
+            </Text>
+            <Text style={{ color: UI.sub, marginTop: 4 }}>
+              Purchases, redemptions, and activities
+            </Text>
           </View>
+        }
+        renderItem={({ item }) => (
+          <Pressable
+            style={{
+              backgroundColor: UI.card,
+              borderRadius: 14,
+              paddingVertical: 14,
+              paddingHorizontal: 14,
+              borderWidth: 1,
+              borderColor: UI.border,
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: 10,
+                backgroundColor: UI.iconBg,
+                alignItems: "center",
+                justifyContent: "center",
+                marginRight: 12,
+              }}
+            >
+              <Text>🧾</Text>
+            </View>
+
+            <View style={{ flex: 1, paddingRight: 10 }}>
+              <Text style={{ fontSize: 16, fontWeight: "700", color: UI.text }}>
+                {item.title}
+              </Text>
+              {!!item.subtitle && (
+                <Text style={{ marginTop: 4, color: UI.sub }}>{item.subtitle}</Text>
+              )}
+            </View>
+
+            <Text style={{ color: UI.chev, fontSize: 18 }}>›</Text>
+          </Pressable>
         )}
+        ItemSeparatorComponent={() => <View style={{ height: 2 }} />}
         ListEmptyComponent={
-          <Text style={{ padding: 16, color: "#7B6A59" }}>No transactions found.</Text>
+          <View
+            style={{
+              marginTop: 24,
+              backgroundColor: UI.card,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: UI.border,
+              padding: 16,
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ color: UI.sub }}>No transactions found.</Text>
+          </View>
         }
       />
     </SafeAreaView>
