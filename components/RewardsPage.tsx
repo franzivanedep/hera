@@ -1,6 +1,12 @@
-// src/screens/RewardsPage.tsx
 import React from "react";
-import { View, Text, Image, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import styles from "../components/styles/RewardsPageStyles";
@@ -12,7 +18,12 @@ const RewardsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
         <ActivityIndicator size="large" color="#8B6F47" />
         <Text style={{ marginTop: 10 }}>Loading rewards...</Text>
       </View>
@@ -47,10 +58,10 @@ const RewardsPage: React.FC = () => {
               router.push({
                 pathname: "/details",
                 params: {
-                  title: reward.name,
-                  image: reward.image_url,
-                  points: reward.points.toString(),
-                  description: reward.description,
+                  title: String(reward.name),
+                  image: String(reward.image_url),
+                  points: String(reward.points),
+                  description: String(reward.description),
                 },
               })
             }
