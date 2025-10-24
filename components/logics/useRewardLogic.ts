@@ -16,7 +16,7 @@ export default function useRewardsLogic() {
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const BASE_URL = "http://192.168.100.19:3001"; // lagay ip address ipv4
+  const BASE_URL = "http://:3001"; // lagay ip address ipv4
   const API_URL = `${BASE_URL}/rewards`;
 
   const fetchRewards = async () => {
