@@ -1,12 +1,26 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import styles from "./styles/UserPageStyles";
+import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { signOut } from "firebase/auth";
+import { auth } from "../lib/firebase";                 // sibling folder
+import styles from "./styles/UserPageStyles";            // inside components/styles
+import { go, type UserSubRoute } from "./logics/usermenu";
 
-interface MenuItem {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-}
+interface MenuItem { icon: keyof typeof Ionicons.glyphMap; label: string; }
+
+const routeMap: Record<string, UserSubRoute> = {
+  Transactions: "transactions",
+  Redemptions: "redemptions",
+  "Other Activities": "activities",
+  "Expired Points": "expired",
+  "Redeem a Voucher": "redeem",
+  "App Tour": "tour",
+  Help: "help",
+  Settings: "settings",
+  Legal: "legal",
+};
 
 const UserPage: React.FC = () => {
   const menuItems: MenuItem[] = [
@@ -21,9 +35,21 @@ const UserPage: React.FC = () => {
     { icon: "document-text-outline", label: "Legal" },
   ];
 
+  const handleLogout = () =>
+    Alert.alert("Log out", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Log out",
+        onPress: async () => {
+          try { await signOut(auth); } catch {}
+          try { await AsyncStorage.multiRemove(["session", "token", "profile"]); } catch {}
+          router.replace("/login");
+        },
+      },
+    ]);
+
   return (
     <ScrollView style={styles.container}>
-      {/* Header Section */}
       <View style={styles.header}>
         <View style={styles.avatarCircle}>
           <Ionicons name="person-outline" size={38} color="#9B6B43" />
@@ -34,13 +60,16 @@ const UserPage: React.FC = () => {
         </View>
       </View>
 
-      {/* Menu Section */}
       <View style={styles.menuSection}>
         {menuItems.map((item, index) => (
           <TouchableOpacity
             key={index}
             style={styles.menuItem}
             activeOpacity={0.7}
+            onPress={() => {
+              const key = routeMap[item.label];
+              if (key) go(key);
+            }}
           >
             <View style={styles.menuLeft}>
               <Ionicons name={item.icon} size={22} color="#4A2E14" />
@@ -49,9 +78,16 @@ const UserPage: React.FC = () => {
             <Ionicons name="chevron-forward" size={18} color="#A88B73" />
           </TouchableOpacity>
         ))}
+
+        <TouchableOpacity onPress={handleLogout} style={styles.menuItem} activeOpacity={0.7}>
+          <View style={styles.menuLeft}>
+            <Ionicons name="log-out-outline" size={22} color="#6B5B4F" />
+            <Text style={styles.menuLabel}>Log out</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#A88B73" />
+        </TouchableOpacity>
       </View>
 
-      {/* Footer Section */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>Software version V1.3.1(658)</Text>
       </View>
