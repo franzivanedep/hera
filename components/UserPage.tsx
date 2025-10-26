@@ -1,14 +1,19 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Alert, Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { signOut } from "firebase/auth";
-import { auth } from "../lib/firebase";                 // sibling folder
-import styles from "./styles/UserPageStyles";            // inside components/styles
+import { auth } from "../lib/firebase";
+import styles from "./styles/UserPageStyles";
 import { go, type UserSubRoute } from "./logics/usermenu";
 
-interface MenuItem { icon: keyof typeof Ionicons.glyphMap; label: string; }
+const { width } = Dimensions.get("window");
+
+interface MenuItem {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+}
 
 const routeMap: Record<string, UserSubRoute> = {
   Transactions: "transactions",
@@ -23,12 +28,18 @@ const routeMap: Record<string, UserSubRoute> = {
 };
 
 const UserPage: React.FC = () => {
-  const menuItems: MenuItem[] = [
+  const activityItems: MenuItem[] = [
     { icon: "receipt-outline", label: "Transactions" },
     { icon: "gift-outline", label: "Redemptions" },
     { icon: "star-outline", label: "Other Activities" },
     { icon: "alert-circle-outline", label: "Expired Points" },
+  ];
+
+  const voucherItems: MenuItem[] = [
     { icon: "ticket-outline", label: "Redeem a Voucher" },
+  ];
+
+  const supportItems: MenuItem[] = [
     { icon: "compass-outline", label: "App Tour" },
     { icon: "help-circle-outline", label: "Help" },
     { icon: "settings-outline", label: "Settings" },
@@ -41,55 +52,154 @@ const UserPage: React.FC = () => {
       {
         text: "Log out",
         onPress: async () => {
-          try { await signOut(auth); } catch {}
-          try { await AsyncStorage.multiRemove(["session", "token", "profile"]); } catch {}
+          try {
+            await signOut(auth);
+          } catch {}
+          try {
+            await AsyncStorage.multiRemove(["session", "token", "profile"]);
+          } catch {}
           router.replace("/login");
         },
       },
     ]);
 
-  return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.avatarCircle}>
-          <Ionicons name="person-outline" size={38} color="#9B6B43" />
-        </View>
-        <View>
-          <Text style={styles.userName}>John Doe</Text>
-          <Text style={styles.subText}>View and edit profile</Text>
-        </View>
-      </View>
+  const renderSection = (title: string, items: MenuItem[]) => (
+    <View style={{ marginBottom: 20 }}>
+      <Text
+        style={{
+          fontSize: 16,
+          fontWeight: "700",
+          color: "#3A2E23",
+          marginLeft: 20,
+          marginBottom: 12,
+        }}
+      >
+        {title}
+      </Text>
 
-      <View style={styles.menuSection}>
-        {menuItems.map((item, index) => (
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          justifyContent: "flex-start",
+          paddingHorizontal: 10,
+        }}
+      >
+        {items.map((item, index) => (
           <TouchableOpacity
             key={index}
-            style={styles.menuItem}
+            style={{
+              width: width / 4, // 4 icons per row
+              alignItems: "center",
+              marginVertical: 12,
+            }}
             activeOpacity={0.7}
             onPress={() => {
               const key = routeMap[item.label];
               if (key) go(key);
             }}
           >
-            <View style={styles.menuLeft}>
-              <Ionicons name={item.icon} size={22} color="#4A2E14" />
-              <Text style={styles.menuLabel}>{item.label}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color="#A88B73" />
+            <Ionicons name={item.icon} size={28} color="#3A2E23" />
+            <Text
+              style={{
+                fontSize: 13,
+                color: "#3A2E23",
+                marginTop: 6,
+                textAlign: "center",
+              }}
+            >
+              {item.label}
+            </Text>
           </TouchableOpacity>
         ))}
+      </View>
+    </View>
+  );
 
-        <TouchableOpacity onPress={handleLogout} style={styles.menuItem} activeOpacity={0.7}>
-          <View style={styles.menuLeft}>
-            <Ionicons name="log-out-outline" size={22} color="#6B5B4F" />
-            <Text style={styles.menuLabel}>Log out</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color="#A88B73" />
-        </TouchableOpacity>
+  return (
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      style={{ backgroundColor: "#F8F4EF", flex: 1 }}
+      contentContainerStyle={{ paddingBottom: 60 }}
+    >
+      {/* Header */}
+      <View
+        style={{
+          paddingHorizontal: 20,
+          paddingTop: 32,
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+      >
+        <View
+          style={{
+            width: 72,
+            height: 72,
+            borderRadius: 36,
+            backgroundColor: "#E8DCC3",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Ionicons name="person-outline" size={42} color="#3A2E23" />
+        </View>
+        <View style={{ marginLeft: 16 }}>
+          <Text style={{ fontSize: 22, fontWeight: "700", color: "#3A2E23" }}>
+            John Doe
+          </Text>
+          <Text style={{ fontSize: 14, color: "#6E6258" }}>
+            View and edit profile
+          </Text>
+        </View>
       </View>
 
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Software version V1.3.1(658)</Text>
+      {/* Sections */}
+      <View style={{ paddingTop: 24 }}>
+        {renderSection("Activity", activityItems)}
+        {renderSection("Vouchers", voucherItems)}
+        {renderSection("Support & Settings", supportItems)}
+      </View>
+
+      {/* Logout */}
+      <TouchableOpacity
+        onPress={handleLogout}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#E8DCC3",
+          paddingVertical: 18,
+          borderRadius: 16,
+          width: width - 40,
+          alignSelf: "center",
+          marginTop: 10,
+        }}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="log-out-outline" size={24} color="#A64B2A" />
+        <Text
+          style={{
+            fontSize: 16,
+            fontWeight: "600",
+            color: "#A64B2A",
+            marginLeft: 8,
+          }}
+        >
+          Log out
+        </Text>
+      </TouchableOpacity>
+
+      {/* Footer */}
+      <View
+        style={{
+          alignItems: "center",
+          marginTop: 16,
+          marginBottom: 24,
+        }}
+      >
+        <Text style={{ color: "#8B7E74", fontSize: 13 }}>
+          Software version V1.3.1(658)
+        </Text>
       </View>
     </ScrollView>
   );
