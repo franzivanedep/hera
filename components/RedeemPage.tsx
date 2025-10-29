@@ -13,6 +13,7 @@ import { Promo, ActionItem } from "../components/logics/useRedeemPage";
 
 type RewardsPageViewProps = {
   userName: string;
+  userPoints: number;
   promos: Promo[];
   actions: ActionItem[];
   currentPromo: number;
@@ -20,6 +21,7 @@ type RewardsPageViewProps = {
 
 const RewardsPageView: React.FC<RewardsPageViewProps> = ({
   userName,
+  userPoints,
   promos,
   actions,
   currentPromo,
@@ -57,7 +59,9 @@ const RewardsPageView: React.FC<RewardsPageViewProps> = ({
       <View style={styles.pointsContainer}>
         <View style={styles.pointsCard}>
           <Text style={styles.pointsTitle}>Your Points</Text>
-          <Text style={styles.pointsValue}>249,560</Text>
+          <Text style={styles.pointsValue}>
+            {userPoints ? `${userPoints.toLocaleString()} pts` : "0 pts"}
+          </Text>
         </View>
       </View>
 
@@ -81,24 +85,22 @@ const RewardsPageView: React.FC<RewardsPageViewProps> = ({
         </View>
       </View>
 
-      {/* ===== PROMO BANNER ===== */}
+      {/* ===== PROMO BANNER (NOW SHOWS STATIC GIFT CONTENT) ===== */}
       <View style={styles.promoContainer}>
         <ImageBackground
-          source={promos[currentPromo].image}
+          source={require("../assets/images/nail1.jpeg")}
           style={styles.promoBanner}
           imageStyle={styles.promoImage}
         >
           <View style={styles.promoOverlay} />
           <View style={styles.promoContent}>
-            <Text style={styles.promoTitle}>{promos[currentPromo].title}</Text>
-            <Text style={styles.promoSubtitle}>
-              {promos[currentPromo].subtitle}
-            </Text>
+            <Text style={styles.promoTitle}>Luxury Manicure Session</Text>
+            <Text style={styles.promoSubtitle}>Redeem for 500 pts</Text>
           </View>
         </ImageBackground>
       </View>
 
-      {/* ===== PERIOD’S GIFT SECTION ===== */}
+      {/* ===== PERIOD’S GIFT SECTION (NOW SHOWS PROMO CONTENT) ===== */}
       <View style={[styles.section, { marginBottom: 40 }]}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>This Period’s Gift</Text>
@@ -112,56 +114,28 @@ const RewardsPageView: React.FC<RewardsPageViewProps> = ({
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingRight: 20 }}
         >
-          {/* Reward 1 */}
-          <ImageBackground
-            source={require("../assets/images/nail1.jpeg")}
-            style={styles.rewardCard}
-            imageStyle={styles.rewardImage}
-          >
-            <View style={styles.overlay} />
-            <View style={styles.rewardContent}>
-              <Text style={styles.rewardTitlePrimary}>
-                Luxury Manicure Session
-              </Text>
-              <View style={styles.pointsTag}>
-                <Ionicons
-                  name="star"
-                  size={14}
-                  color="#fff"
-                  style={{ marginRight: 4 }}
-                />
-                <Text style={styles.rewardPointsPrimary}>500 pts</Text>
-              </View>
-            </View>
-          </ImageBackground>
-
-          {/* Reward 2 */}
-          <View style={styles.rewardCardPlain}>
-            <Ionicons
-              name="sparkles-outline"
-              size={26}
-              color="#9E7E63"
-              style={{ marginBottom: 10 }}
-            />
-            <Text style={styles.rewardTitle}>Spa Pedicure Package</Text>
-            <View style={styles.pointsTagPlain}>
-              <Text style={styles.rewardPoints}>300 pts</Text>
-            </View>
-          </View>
-
-          {/* Reward 3 */}
-          <View style={styles.rewardCardPlain}>
-            <Ionicons
-              name="color-palette-outline"
-              size={26}
-              color="#9E7E63"
-              style={{ marginBottom: 10 }}
-            />
-            <Text style={styles.rewardTitle}>Gel Polish Add-On</Text>
-            <View style={styles.pointsTagPlain}>
-              <Text style={styles.rewardPoints}>150 pts</Text>
-            </View>
-          </View>
+          {promos.length > 0 ? (
+            promos.map((promo, index) => (
+              <ImageBackground
+                key={index}
+                source={promo.image}
+                style={styles.rewardCard}
+                imageStyle={styles.rewardImage}
+              >
+                <View style={styles.overlay} />
+                <View style={styles.rewardContent}>
+                  <Text style={styles.rewardTitlePrimary}>{promo.title}</Text>
+                  <Text style={styles.rewardPointsPrimary}>
+                    {promo.subtitle}
+                  </Text>
+                </View>
+              </ImageBackground>
+            ))
+          ) : (
+            <Text style={{ color: "#888", padding: 20 }}>
+              No promos available
+            </Text>
+          )}
         </ScrollView>
       </View>
     </ScrollView>

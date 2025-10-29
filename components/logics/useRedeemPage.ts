@@ -14,21 +14,38 @@ export type ActionItem = {
   route: "/referrals" | null;
 };
 
+// ✅ Pull your API base URL from .env
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL; // e.g. http://192.168.1.5:4000
+
 export default function useRewardsPageLogic() {
   const [userName, setUserName] = useState<string>("Guest");
+  const [userPoints, setUserPoints] = useState<number>(0);
   const [currentPromo, setCurrentPromo] = useState<number>(0);
+  const [promos, setPromos] = useState<Promo[]>([]);
 
-  // === Get user info from Firebase Auth ===
+  // === Get user info and points ===
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
       if (user) {
-        const display = user.displayName || user.email || "Guest";
-        const name = display.includes("@")
-          ? display.split("@")[0]
-          : display;
-        setUserName(capitalizeFirstLetter(name));
+        const email = user.email?.toLowerCase() || "";
+        const displayName = user.displayName || email.split("@")[0];
+        setUserName(capitalizeFirstLetter(displayName));
+
+        try {
+          const res = await fetch(`${BASE_URL}/users`);
+          const users = await res.json();
+
+          const foundUser = users.find(
+            (u: any) => u.gmail?.toLowerCase() === email
+          );
+
+          setUserPoints(foundUser?.points || 0);
+        } catch (err) {
+          console.error("Error fetching user points:", err);
+        }
       } else {
         setUserName("Guest");
+        setUserPoints(0);
       }
     });
 
@@ -38,29 +55,42 @@ export default function useRewardsPageLogic() {
   const capitalizeFirstLetter = (str: string) =>
     str.charAt(0).toUpperCase() + str.slice(1);
 
-  // === Promo Banners ===
-  const promos: Promo[] = [
-    {
-      image: require("../../assets/images/header.jpg"),
-      title: "✨ October Promo ✨",
-      subtitle: "Get 20% OFF all manicure packages this week only!",
-    },
-    {
-      image: require("../../assets/images/nail1.jpeg"),
-      title: "💅 Refer a Friend 💅",
-      subtitle: "Earn 100 bonus points when your friend books a session!",
-    },
-    {
-      image: require("../../assets/images/header.jpg"),
-      title: "🌸 New Arrivals 🌸",
-      subtitle: "Discover our latest nail polish shades!",
-    },
-  ];
+  // === Fetch Promos from /rewards ===
+  useEffect(() => {
+    const fetchPromos = async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/rewards`);
+        const data = await res.json();
+
+        const activePromos = data
+          .filter((reward: any) => reward.is_active === true)
+          .map((reward: any) => ({
+            image: {
+              uri: reward.image_url.startsWith("http")
+                ? reward.image_url
+                : `${BASE_URL}${reward.image_url.startsWith("/") ? "" : "/"}${reward.image_url}`,
+            },
+            title: reward.name,
+            subtitle: reward.description,
+          }));
+
+        setPromos(activePromos);
+      } catch (err) {
+        console.error("Error fetching promos:", err);
+      }
+    };
+
+    fetchPromos();
+    const interval = setInterval(fetchPromos, 5000); // refresh every 5s
+    return () => clearInterval(interval);
+  }, []);
 
   // === Auto-rotate promos ===
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentPromo((prev) => (prev + 1) % promos.length);
+      setCurrentPromo((prev) =>
+        promos.length ? (prev + 1) % promos.length : 0
+      );
     }, 4000);
     return () => clearInterval(interval);
   }, [promos.length]);
@@ -73,6 +103,7 @@ export default function useRewardsPageLogic() {
 
   return {
     userName,
+    userPoints,
     currentPromo,
     promos,
     actions,

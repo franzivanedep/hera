@@ -1,27 +1,28 @@
-import { initializeApp, getApps } from "firebase/app";
-import { getAuth, initializeAuth, getReactNativePersistence } from "firebase/auth";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import {
+  getAuth,
+  initializeAuth,
+  getReactNativePersistence,
+  type Auth, // ✅ import the Auth type
+} from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBJoQGmWkBdt-1AYewfOmUQ0JB_Cf5SMY8",
-  authDomain: "beta-hera.firebaseapp.com",
-  projectId: "beta-hera",
-  storageBucket: "beta-hera.firebasestorage.app",
-  messagingSenderId: "1020811142027",
-  appId: "1:1020811142027:web:003c59ab3c17853556058e",
-  measurementId: "G-3KS79Y2KFT"
+  apiKey: "AIzaSyAie-wZNOKpjuLeRfIeNf88Z1Z4QPnNxN0",
+  authDomain: "hera-a378b.firebaseapp.com",
+  projectId: "hera-a378b",
+  storageBucket: "hera-a378b.appspot.com", // ✅ FIXED: should end with .appspot.com
+  messagingSenderId: "981959582947",
+  appId: "1:981959582947:web:2d528540b9092901c951d6"
 };
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-
-let auth = getAuth(app);
+// ✅ Typed properly
+let auth: Auth;
 try {
-  // @ts-ignore avoid double init during fast refresh
-  if (!(auth as any)._persistor) {
-    auth = initializeAuth(app, {
-      persistence: getReactNativePersistence(AsyncStorage),
-    });
-  }
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
 } catch {
   auth = getAuth(app);
 }

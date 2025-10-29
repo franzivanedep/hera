@@ -7,6 +7,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import styles from "./styles/UserPageStyles";
 import { go, type UserSubRoute } from "./logics/usermenu";
+import useUserInfo from "@/hooks/useUserInfo"; // make sure this path is correct
 
 const { width } = Dimensions.get("window");
 
@@ -28,6 +29,8 @@ const routeMap: Record<string, UserSubRoute> = {
 };
 
 const UserPage: React.FC = () => {
+  const { email, displayName } = useUserInfo();
+
   const activityItems: MenuItem[] = [
     { icon: "receipt-outline", label: "Transactions" },
     { icon: "gift-outline", label: "Redemptions" },
@@ -89,7 +92,7 @@ const UserPage: React.FC = () => {
           <TouchableOpacity
             key={index}
             style={{
-              width: width / 4, // 4 icons per row
+              width: width / 4,
               alignItems: "center",
               marginVertical: 12,
             }}
@@ -145,11 +148,11 @@ const UserPage: React.FC = () => {
         </View>
         <View style={{ marginLeft: 16 }}>
           <Text style={{ fontSize: 22, fontWeight: "700", color: "#3A2E23" }}>
-            John Doe
+            {displayName}
           </Text>
-          <Text style={{ fontSize: 14, color: "#6E6258" }}>
-            View and edit profile
-          </Text>
+          {email && (
+            <Text style={{ fontSize: 14, color: "#6E6258" }}>{email}</Text>
+          )}
         </View>
       </View>
 
