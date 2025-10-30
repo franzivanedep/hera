@@ -15,7 +15,7 @@ export type ActionItem = {
 };
 
 // ✅ Pull your API base URL from .env
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL; // e.g. http://192.168.1.5:4000
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL; 
 
 export default function useRewardsPageLogic() {
   const [userName, setUserName] = useState<string>("Guest");

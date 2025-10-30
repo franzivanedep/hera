@@ -3,21 +3,25 @@ import {
   getAuth,
   initializeAuth,
   getReactNativePersistence,
-  type Auth, // ✅ import the Auth type
+  type Auth,
 } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getFirestore } from "firebase/firestore";
 
+// ✅ Environment variables (set these in your .env)
 const firebaseConfig = {
-  apiKey: "AIzaSyAie-wZNOKpjuLeRfIeNf88Z1Z4QPnNxN0",
-  authDomain: "hera-a378b.firebaseapp.com",
-  projectId: "hera-a378b",
-  storageBucket: "hera-a378b.appspot.com", // ✅ FIXED: should end with .appspot.com
-  messagingSenderId: "981959582947",
-  appId: "1:981959582947:web:2d528540b9092901c951d6"
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
+
+// ✅ Reuse existing app if already initialized
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-// ✅ Typed properly
+// ✅ Initialize Auth with AsyncStorage persistence
 let auth: Auth;
 try {
   auth = initializeAuth(app, {
@@ -27,4 +31,7 @@ try {
   auth = getAuth(app);
 }
 
-export { app, auth };
+// ✅ Initialize Firestore
+const db = getFirestore(app);
+
+export { app, auth, db };
