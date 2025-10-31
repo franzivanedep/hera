@@ -11,85 +11,72 @@ interface UserDoc {
   [key: string]: any;
 }
 
-export default function useQRGeneratorLogic() {
-  const [gmail, setGmail] = useState<string | null>(null);
+export default function useQRGeneratorLogic(pollInterval = 5000) {
   const [userDoc, setUserDoc] = useState<UserDoc | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
   const [qrId, setQrId] = useState<string | null>(null);
-  const [message, setMessage] = useState<string>("");
+  const [qrUsed, setQrUsed] = useState<boolean>(false); // always true/false
+  const [message, setMessage] = useState<string>("Checking QR status...");
 
-  // ✅ Get logged-in Gmail
+  // Get logged-in Gmail
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
       const email = user?.email ?? null;
-      setGmail(email);
+      if (!email) return;
 
-      if (email) {
-        const cached = await AsyncStorage.getItem("userDoc");
-        if (cached) {
-          const parsed: UserDoc & { gmail: string } = JSON.parse(cached);
-          if (parsed.gmail === email) setUserDoc(parsed);
+      const cached = await AsyncStorage.getItem("userDoc");
+      if (cached) {
+        const parsed: UserDoc & { gmail: string } = JSON.parse(cached);
+        setUserDoc(parsed);
+      } else {
+        try {
+          const userRes = await axios.get(`${BASE_URL}/users/byGmail?gmail=${email}`);
+          const user: UserDoc = userRes.data;
+          setUserDoc(user);
+          await AsyncStorage.setItem("userDoc", JSON.stringify({ ...user, gmail: email }));
+        } catch (err) {
+          console.error("Failed to fetch user:", err);
         }
       }
     });
+
     return () => unsubscribe();
   }, []);
 
-  // ✅ Fetch user document & QR
+  // Poll QR status
   useEffect(() => {
-    if (!gmail) return;
+    if (!userDoc?.id) return;
 
     const fetchQR = async () => {
       try {
-        setLoading(true);
-        setMessage("Fetching your QR...");
-
-        const userRes = await axios.get(`${BASE_URL}/users/byGmail?gmail=${gmail}`);
-        const user: UserDoc = userRes.data;
-
-        if (!user?.id) throw new Error("User UID not found");
-        const uid = user.id;
-
-        setUserDoc({ ...user, id: uid });
-        await AsyncStorage.setItem("userDoc", JSON.stringify({ ...user, gmail }));
-
-        // Fetch QR
-        const qrRes = await axios.get(`${BASE_URL}/points/qr/${uid}`);
+        const qrRes = await axios.get(`${BASE_URL}/points/qr/${userDoc.id}`);
         if (qrRes.data?.qrId) {
           setQrId(qrRes.data.qrId);
-          setMessage("QR loaded successfully!");
+          setQrUsed(qrRes.data.used);
+          setMessage(qrRes.data.used ? "This QR has been used or expired." : "Your QR is active.");
         } else {
-          // Create QR if not exists
-          const createRes = await axios.post(`${BASE_URL}/points/createQR`, {
-            uid,
-            type: "attendance",
-          });
-          setQrId(createRes.data.qrId);
-          setMessage("New QR created!");
+          setQrId(null);
+          setQrUsed(true); // treat missing QR as expired
+          setMessage("No active QR available.");
         }
       } catch (err: any) {
-        console.error("Error loading QR:", err?.response?.data || err.message || err);
-        setMessage("Failed to fetch QR. Please try again.");
-      } finally {
-        setLoading(false);
+        console.error("Error fetching QR:", err?.response?.data || err.message || err);
+        setQrId(null);
+        setQrUsed(true);
+        setMessage("Failed to retrieve QR status.");
       }
     };
 
-    fetchQR();
-  }, [gmail]);
+    fetchQR(); // initial
+    const interval = setInterval(fetchQR, pollInterval);
 
-  // ✅ Regenerate: refresh QR image (same ID)
+    return () => clearInterval(interval);
+  }, [userDoc, pollInterval]);
+
+  // Refresh QR manually
   const regenerateQR = useCallback(() => {
     if (!qrId) return;
-    setLoading(true);
-    setMessage("Refreshing QR...");
+    setMessage(qrUsed ? "This QR has been used or expired." : "Refreshing QR...");
+  }, [qrId, qrUsed]);
 
-    // Simulate a QR refresh
-    setTimeout(() => {
-      setLoading(false);
-      setMessage("QR refreshed successfully!");
-    }, 300); // small delay to show refresh
-  }, [qrId]);
-
-  return { gmail, loading, qrId, message, regenerateQR };
+  return { qrId, qrUsed, message, regenerateQR };
 }

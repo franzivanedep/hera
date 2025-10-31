@@ -1,57 +1,38 @@
 import React from "react";
-import {
-  SafeAreaView,
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-} from "react-native";
+import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 
 interface Props {
-  loading: boolean;
   qrPayload: string | null;
+  qrUsed: boolean;
   message: string;
   onRegenerate: () => void;
 }
 
-const QRGeneratorView: React.FC<Props> = ({
-  loading,
-  qrPayload,
-  message,
-  onRegenerate,
-}) => {
+const QRGeneratorView: React.FC<Props> = ({ qrPayload, qrUsed, message, onRegenerate }) => {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
         <Text style={styles.title}>Your QR Code</Text>
 
         <View style={styles.qrCard}>
-          {loading ? (
-            <View style={styles.loaderWrap}>
-              <ActivityIndicator size="large" color="#5A4634" />
-              <Text style={styles.generatingText}>Generating QR...</Text>
-            </View>
-          ) : qrPayload ? (
+          {qrPayload && !qrUsed ? (
             <>
               <QRCode value={qrPayload} size={220} color="#5A4634" />
               <Text style={styles.qrIdText}>{qrPayload}</Text>
             </>
           ) : (
-            <Text style={styles.generatingText}>No QR available</Text>
+            <Text style={styles.generatingText}>{message}</Text>
           )}
         </View>
 
         <Text style={styles.infoText}>{message}</Text>
         <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
+          style={[styles.button, qrUsed && styles.buttonDisabled]}
           onPress={onRegenerate}
-          disabled={loading}
+          disabled={qrUsed}
         >
-          <Text style={styles.buttonText}>
-            {loading ? "Please wait..." : "Refresh QR"}
-          </Text>
+          <Text style={styles.buttonText}>{qrUsed ? "QR Unavailable" : "Refresh QR"}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -75,8 +56,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     padding: 10,
   },
-  loaderWrap: { justifyContent: "center", alignItems: "center" },
-  generatingText: { marginTop: 10, color: "#8A7A63" },
+  generatingText: { color: "#8A7A63", textAlign: "center" },
   qrIdText: { marginTop: 10, color: "#5A4634", fontSize: 12, textAlign: "center" },
   infoText: { color: "#5A4634", textAlign: "center", marginBottom: 20, fontSize: 14.5, lineHeight: 22 },
   button: { backgroundColor: "#5A4634", paddingVertical: 14, paddingHorizontal: 35, borderRadius: 14 },
