@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, SafeAreaVie
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function SignUp() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function SignUp() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  // 1️⃣ Send verification code
   async function sendCode() {
     setBusy(true);
     try {
@@ -32,9 +34,11 @@ export default function SignUp() {
     }
   }
 
+  // 2️⃣ Verify code & sign up
   async function verifyAndSignUp() {
     setBusy(true);
     try {
+      // Verify email code first
       const res = await fetch(`${BASE_URL}/email/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -43,14 +47,26 @@ export default function SignUp() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Verification failed");
 
-      // Proceed only if verified
-      await createUserWithEmailAndPassword(auth, email.trim(), pw);
-      await fetch(`${BASE_URL}/users/newUser`, {
+      // Create Firebase user
+      const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), pw);
+      const uid = userCredential.user.uid;
+
+      // Save UID in AsyncStorage
+      await AsyncStorage.setItem("uid", uid);
+
+      // Send UID + Gmail to backend (UID will be the document ID)
+      const backendRes = await fetch(`${BASE_URL}/users/newUser`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gmail: email.trim() }),
+        body: JSON.stringify({ gmail: email.trim(), uid }),
       });
 
+      if (!backendRes.ok) {
+        const errData = await backendRes.json();
+        throw new Error(errData.message || "Failed to save user in backend");
+      }
+
+      // Redirect to home
       router.replace("/");
     } catch (e: any) {
       setErr(e.message);
@@ -67,20 +83,46 @@ export default function SignUp() {
 
       {!sent ? (
         <>
-          <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={{ backgroundColor: "#F3EDE3", padding: 15, borderRadius: 12, marginBottom: 12 }} />
-          <TextInput placeholder="Password" secureTextEntry value={pw} onChangeText={setPw} style={{ backgroundColor: "#F3EDE3", padding: 15, borderRadius: 12 }} />
-          <TouchableOpacity onPress={sendCode} disabled={busy} style={{ backgroundColor: "#5A4634", padding: 15, borderRadius: 12, alignItems: "center", marginTop: 10 }}>
+          <TextInput
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            style={{ backgroundColor: "#F3EDE3", padding: 15, borderRadius: 12, marginBottom: 12 }}
+          />
+          <TextInput
+            placeholder="Password"
+            secureTextEntry
+            value={pw}
+            onChangeText={setPw}
+            style={{ backgroundColor: "#F3EDE3", padding: 15, borderRadius: 12 }}
+          />
+          <TouchableOpacity
+            onPress={sendCode}
+            disabled={busy}
+            style={{ backgroundColor: "#5A4634", padding: 15, borderRadius: 12, alignItems: "center", marginTop: 10 }}
+          >
             {busy ? <ActivityIndicator color="#FAF9F7" /> : <Text style={{ color: "#FAF9F7", fontWeight: "700" }}>Send Verification Code</Text>}
           </TouchableOpacity>
         </>
       ) : (
         <>
-          <TextInput placeholder="Enter code" keyboardType="numeric" value={code} onChangeText={setCode} style={{ backgroundColor: "#F3EDE3", padding: 15, borderRadius: 12, marginBottom: 12 }} />
-          <TouchableOpacity onPress={verifyAndSignUp} disabled={busy} style={{ backgroundColor: "#5A4634", padding: 15, borderRadius: 12, alignItems: "center" }}>
+          <TextInput
+            placeholder="Enter code"
+            keyboardType="numeric"
+            value={code}
+            onChangeText={setCode}
+            style={{ backgroundColor: "#F3EDE3", padding: 15, borderRadius: 12, marginBottom: 12 }}
+          />
+          <TouchableOpacity
+            onPress={verifyAndSignUp}
+            disabled={busy}
+            style={{ backgroundColor: "#5A4634", padding: 15, borderRadius: 12, alignItems: "center" }}
+          >
             {busy ? <ActivityIndicator color="#FAF9F7" /> : <Text style={{ color: "#FAF9F7", fontWeight: "700" }}>Verify & Sign Up</Text>}
           </TouchableOpacity>
         </>
       )}
+
       {err && <Text style={{ color: "#b3261e", textAlign: "center", marginTop: 10 }}>{err}</Text>}
     </SafeAreaView>
   );

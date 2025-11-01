@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
-import { onAuthStateChanged, User } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { auth } from "../../lib/firebase";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -13,7 +11,6 @@ interface UserDoc {
 
 export default function useQRGeneratorLogic(pollInterval = 5000) {
   const [userDoc, setUserDoc] = useState<UserDoc | null>(null);
-  const [gmail, setGmail] = useState<string | null>(null);
   const [qrId, setQrId] = useState<string | null>(null);
   const [qrUsed, setQrUsed] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("Waiting for login...");
@@ -22,50 +19,34 @@ export default function useQRGeneratorLogic(pollInterval = 5000) {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   /* ------------------------------------------------------------ */
-  /* ✅ 1️⃣ Wait for Firebase Auth user */
+  /* ✅ 1️⃣ Load UID from AsyncStorage */
   /* ------------------------------------------------------------ */
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
-      if (!user?.email) {
-        setGmail(null);
-        setUserDoc(null);
-        setMessage("Please log in first.");
-        return;
-      }
-
-      setGmail(user.email);
-      setMessage("Fetching user info...");
-
+    const loadUser = async () => {
       try {
-        // ✅ Try cached user first
-        const cached = await AsyncStorage.getItem("userDoc");
-        if (cached) {
-          const parsed: UserDoc & { gmail: string } = JSON.parse(cached);
-          if (parsed.gmail === user.email) {
-            setUserDoc(parsed);
-            setMessage("User loaded from cache.");
-            return;
-          }
+        const uid = await AsyncStorage.getItem("uid");
+        if (!uid) {
+          setMessage("No logged-in user found.");
+          setShowRefresh(true);
+          return;
         }
 
-        // ✅ Otherwise fetch from backend
-        const res = await axios.get(`${BASE_URL}/users/byGmail?gmail=${user.email}`);
-        const userData: UserDoc = res.data;
-        await AsyncStorage.setItem("userDoc", JSON.stringify({ ...userData, gmail: user.email }));
-        setUserDoc(userData);
+        // Only UID is needed for QR logic
+        setUserDoc({ id: uid });
         setMessage("User loaded successfully.");
+        setShowRefresh(false);
       } catch (err: any) {
-        console.error("Error fetching user:", err?.response?.data || err.message || err);
-        setMessage("Failed to load user data.");
+        console.error("Error loading UID:", err.message || err);
+        setMessage("Failed to load user UID.");
         setShowRefresh(true);
       }
-    });
+    };
 
-    return () => unsubscribe();
+    loadUser();
   }, []);
 
   /* ------------------------------------------------------------ */
-  /* ✅ 2️⃣ Auto-check QR state every few seconds */
+  /* ✅ 2️⃣ Auto-check QR state periodically */
   /* ------------------------------------------------------------ */
   useEffect(() => {
     if (!userDoc?.id) return;
@@ -75,13 +56,11 @@ export default function useQRGeneratorLogic(pollInterval = 5000) {
         const qrRes = await axios.get(`${BASE_URL}/points/qr/${userDoc.id}`);
 
         if (qrRes.data?.qrId && !qrRes.data.used) {
-          // ✅ Active QR found
           setQrId(qrRes.data.qrId);
           setQrUsed(false);
           setMessage("Active QR found.");
           setShowRefresh(false);
         } else {
-          // ❌ No active QR — create new
           setMessage("No active QR found. Creating one...");
           const newQrRes = await axios.post(`${BASE_URL}/points/createQR`, {
             uid: userDoc.id,
@@ -98,14 +77,14 @@ export default function useQRGeneratorLogic(pollInterval = 5000) {
         setQrId(null);
         setQrUsed(true);
         setMessage("Failed to retrieve or create QR. Please try again.");
-        setShowRefresh(true); // 👈 Only show button when this fails
+        setShowRefresh(true);
       }
     };
 
-    // ✅ Initial call
+    // Initial call
     checkOrCreateQR();
 
-    // ✅ Re-run periodically
+    // Poll periodically
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(checkOrCreateQR, pollInterval);
 
@@ -115,7 +94,7 @@ export default function useQRGeneratorLogic(pollInterval = 5000) {
   }, [userDoc, pollInterval]);
 
   /* ------------------------------------------------------------ */
-  /* ✅ 3️⃣ Manual refresh (only shown if something failed) */
+  /* ✅ 3️⃣ Manual QR regeneration */
   /* ------------------------------------------------------------ */
   const regenerateQR = useCallback(async () => {
     if (!userDoc?.id) return;
@@ -139,15 +118,14 @@ export default function useQRGeneratorLogic(pollInterval = 5000) {
   }, [userDoc]);
 
   /* ------------------------------------------------------------ */
-  /* ✅ 4️⃣ Return everything the UI needs */
+  /* ✅ 4️⃣ Return values for UI */
   /* ------------------------------------------------------------ */
   return {
-    gmail,
     userDoc,
     qrId,
     qrUsed,
     message,
-    showRefresh,   // 👈 Only true when failure occurs
-    regenerateQR,  // 👈 Only used when showRefresh = true
+    showRefresh,   // true only on failure
+    regenerateQR,  // used when showRefresh = true
   };
 }

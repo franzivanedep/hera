@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
@@ -23,9 +24,8 @@ export default function useLoginLogic() {
 
   const canSubmit = email.trim().length > 3 && password.length >= 6 && !busy;
 
-  // ✅ FIX: Use `clientId` instead of `expoClientId`
   const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com", // <-- universal
+    clientId: "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com",
     androidClientId: "YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com",
     iosClientId: "YOUR_IOS_CLIENT_ID.apps.googleusercontent.com",
     webClientId: "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com",
@@ -48,7 +48,11 @@ export default function useLoginLogic() {
         );
 
         try {
-          await signInWithCredential(auth, credential);
+          const result = await signInWithCredential(auth, credential);
+
+          // ✅ Save UID in AsyncStorage (professional)
+          await AsyncStorage.setItem("userUid", result.user.uid);
+
           router.replace("/(tabs)");
         } catch (e: any) {
           setErr(normalize(e));
@@ -76,7 +80,11 @@ export default function useLoginLogic() {
     setErr(null);
 
     try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
+      const result = await signInWithEmailAndPassword(auth, email.trim(), password);
+
+      // ✅ Save UID in AsyncStorage (professional)
+      await AsyncStorage.setItem("userUid", result.user.uid);
+
       router.replace("/(tabs)");
     } catch (e: any) {
       setErr(normalize(e));
