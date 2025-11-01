@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { onAuthStateChanged, User } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -13,70 +13,141 @@ interface UserDoc {
 
 export default function useQRGeneratorLogic(pollInterval = 5000) {
   const [userDoc, setUserDoc] = useState<UserDoc | null>(null);
+  const [gmail, setGmail] = useState<string | null>(null);
   const [qrId, setQrId] = useState<string | null>(null);
-  const [qrUsed, setQrUsed] = useState<boolean>(false); // always true/false
-  const [message, setMessage] = useState<string>("Checking QR status...");
+  const [qrUsed, setQrUsed] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>("Waiting for login...");
+  const [showRefresh, setShowRefresh] = useState<boolean>(false);
 
-  // Get logged-in Gmail
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  /* ------------------------------------------------------------ */
+  /* ✅ 1️⃣ Wait for Firebase Auth user */
+  /* ------------------------------------------------------------ */
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
-      const email = user?.email ?? null;
-      if (!email) return;
+      if (!user?.email) {
+        setGmail(null);
+        setUserDoc(null);
+        setMessage("Please log in first.");
+        return;
+      }
 
-      const cached = await AsyncStorage.getItem("userDoc");
-      if (cached) {
-        const parsed: UserDoc & { gmail: string } = JSON.parse(cached);
-        setUserDoc(parsed);
-      } else {
-        try {
-          const userRes = await axios.get(`${BASE_URL}/users/byGmail?gmail=${email}`);
-          const user: UserDoc = userRes.data;
-          setUserDoc(user);
-          await AsyncStorage.setItem("userDoc", JSON.stringify({ ...user, gmail: email }));
-        } catch (err) {
-          console.error("Failed to fetch user:", err);
+      setGmail(user.email);
+      setMessage("Fetching user info...");
+
+      try {
+        // ✅ Try cached user first
+        const cached = await AsyncStorage.getItem("userDoc");
+        if (cached) {
+          const parsed: UserDoc & { gmail: string } = JSON.parse(cached);
+          if (parsed.gmail === user.email) {
+            setUserDoc(parsed);
+            setMessage("User loaded from cache.");
+            return;
+          }
         }
+
+        // ✅ Otherwise fetch from backend
+        const res = await axios.get(`${BASE_URL}/users/byGmail?gmail=${user.email}`);
+        const userData: UserDoc = res.data;
+        await AsyncStorage.setItem("userDoc", JSON.stringify({ ...userData, gmail: user.email }));
+        setUserDoc(userData);
+        setMessage("User loaded successfully.");
+      } catch (err: any) {
+        console.error("Error fetching user:", err?.response?.data || err.message || err);
+        setMessage("Failed to load user data.");
+        setShowRefresh(true);
       }
     });
 
     return () => unsubscribe();
   }, []);
 
-  // Poll QR status
+  /* ------------------------------------------------------------ */
+  /* ✅ 2️⃣ Auto-check QR state every few seconds */
+  /* ------------------------------------------------------------ */
   useEffect(() => {
     if (!userDoc?.id) return;
 
-    const fetchQR = async () => {
+    const checkOrCreateQR = async () => {
       try {
         const qrRes = await axios.get(`${BASE_URL}/points/qr/${userDoc.id}`);
-        if (qrRes.data?.qrId) {
+
+        if (qrRes.data?.qrId && !qrRes.data.used) {
+          // ✅ Active QR found
           setQrId(qrRes.data.qrId);
-          setQrUsed(qrRes.data.used);
-          setMessage(qrRes.data.used ? "This QR has been used or expired." : "Your QR is active.");
+          setQrUsed(false);
+          setMessage("Active QR found.");
+          setShowRefresh(false);
         } else {
-          setQrId(null);
-          setQrUsed(true); // treat missing QR as expired
-          setMessage("No active QR available.");
+          // ❌ No active QR — create new
+          setMessage("No active QR found. Creating one...");
+          const newQrRes = await axios.post(`${BASE_URL}/points/createQR`, {
+            uid: userDoc.id,
+            type: "attendance",
+            createdAt: new Date().toISOString(),
+          });
+          setQrId(newQrRes.data.qrId);
+          setQrUsed(false);
+          setMessage("New QR created successfully.");
+          setShowRefresh(false);
         }
       } catch (err: any) {
-        console.error("Error fetching QR:", err?.response?.data || err.message || err);
+        console.error("QR fetch/create error:", err?.response?.data || err.message || err);
         setQrId(null);
         setQrUsed(true);
-        setMessage("Failed to retrieve QR status.");
+        setMessage("Failed to retrieve or create QR. Please try again.");
+        setShowRefresh(true); // 👈 Only show button when this fails
       }
     };
 
-    fetchQR(); // initial
-    const interval = setInterval(fetchQR, pollInterval);
+    // ✅ Initial call
+    checkOrCreateQR();
 
-    return () => clearInterval(interval);
+    // ✅ Re-run periodically
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(checkOrCreateQR, pollInterval);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [userDoc, pollInterval]);
 
-  // Refresh QR manually
-  const regenerateQR = useCallback(() => {
-    if (!qrId) return;
-    setMessage(qrUsed ? "This QR has been used or expired." : "Refreshing QR...");
-  }, [qrId, qrUsed]);
+  /* ------------------------------------------------------------ */
+  /* ✅ 3️⃣ Manual refresh (only shown if something failed) */
+  /* ------------------------------------------------------------ */
+  const regenerateQR = useCallback(async () => {
+    if (!userDoc?.id) return;
 
-  return { qrId, qrUsed, message, regenerateQR };
+    try {
+      setMessage("Regenerating QR...");
+      const res = await axios.post(`${BASE_URL}/points/createQR`, {
+        uid: userDoc.id,
+        type: "attendance",
+        regeneratedAt: new Date().toISOString(),
+      });
+      setQrId(res.data.qrId);
+      setQrUsed(false);
+      setMessage("QR regenerated successfully.");
+      setShowRefresh(false);
+    } catch (err: any) {
+      console.error("QR regenerate error:", err?.response?.data || err.message || err);
+      setMessage("Failed to regenerate QR.");
+      setShowRefresh(true);
+    }
+  }, [userDoc]);
+
+  /* ------------------------------------------------------------ */
+  /* ✅ 4️⃣ Return everything the UI needs */
+  /* ------------------------------------------------------------ */
+  return {
+    gmail,
+    userDoc,
+    qrId,
+    qrUsed,
+    message,
+    showRefresh,   // 👈 Only true when failure occurs
+    regenerateQR,  // 👈 Only used when showRefresh = true
+  };
 }

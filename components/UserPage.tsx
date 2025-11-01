@@ -1,5 +1,12 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, Alert, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  Dimensions,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -7,7 +14,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import styles from "./styles/UserPageStyles";
 import { go, type UserSubRoute } from "./logics/usermenu";
-import useUserInfo from "@/hooks/useUserInfo"; // make sure this path is correct
+import useUserInfo from "@/hooks/useUserInfo";
 
 const { width } = Dimensions.get("window");
 
@@ -49,22 +56,39 @@ const UserPage: React.FC = () => {
     { icon: "document-text-outline", label: "Legal" },
   ];
 
-  const handleLogout = () =>
-    Alert.alert("Log out", "Are you sure you want to log out?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Log out",
-        onPress: async () => {
-          try {
-            await signOut(auth);
-          } catch {}
-          try {
-            await AsyncStorage.multiRemove(["session", "token", "profile"]);
-          } catch {}
+ const handleLogout = () =>
+  Alert.alert("Log out", "Are you sure you want to log out?", [
+    { text: "Cancel", style: "cancel" },
+    {
+      text: "Log out",
+      onPress: async () => {
+        try {
+          // 🔹 Step 1: Forcefully sign out from Firebase
+          await signOut(auth);
+
+          // 🔹 Step 2: Wait for Firebase to actually clear the user
+          await new Promise<void>((resolve) => {
+            const unsub = auth.onAuthStateChanged((user) => {
+              if (!user) {
+                unsub();
+                resolve();
+              }
+            });
+          });
+
+          // 🔹 Step 3: Fully clear local storage
+          await AsyncStorage.clear();
+
+          console.log("✅ Fully logged out, storage cleared, and Firebase session reset.");
+
+          // 🔹 Step 4: Navigate safely AFTER user is null
           router.replace("/login");
-        },
+        } catch (error) {
+          console.warn("Logout error:", error);
+        }
       },
-    ]);
+    },
+  ]);
 
   const renderSection = (title: string, items: MenuItem[]) => (
     <View style={{ marginBottom: 20 }}>
@@ -148,10 +172,12 @@ const UserPage: React.FC = () => {
         </View>
         <View style={{ marginLeft: 16 }}>
           <Text style={{ fontSize: 22, fontWeight: "700", color: "#3A2E23" }}>
-            {displayName}
+            {displayName || "Guest User"}
           </Text>
-          {email && (
+          {email ? (
             <Text style={{ fontSize: 14, color: "#6E6258" }}>{email}</Text>
+          ) : (
+            <Text style={{ fontSize: 14, color: "#6E6258" }}>No email</Text>
           )}
         </View>
       </View>
