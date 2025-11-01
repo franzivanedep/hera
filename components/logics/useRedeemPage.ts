@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { doc, onSnapshot } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
 export type Promo = {
   image: any;
@@ -15,7 +16,7 @@ export type ActionItem = {
 };
 
 // ✅ Pull your API base URL from .env
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL; 
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function useRewardsPageLogic() {
   const [userName, setUserName] = useState<string>("Guest");
@@ -23,37 +24,40 @@ export default function useRewardsPageLogic() {
   const [currentPromo, setCurrentPromo] = useState<number>(0);
   const [promos, setPromos] = useState<Promo[]>([]);
 
-  // === Get user info and points ===
+  // === Capitalize helper ===
+  const capitalizeFirstLetter = (str: string) =>
+    str.charAt(0).toUpperCase() + str.slice(1);
+
+  // === Real-time user info and points ===
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
+    let unsubscribeUser: (() => void) | undefined;
+
+    const authUnsub = onAuthStateChanged(auth, (user: User | null) => {
       if (user) {
-        const email = user.email?.toLowerCase() || "";
-        const displayName = user.displayName || email.split("@")[0];
+        const displayName = user.displayName || user.email?.split("@")[0] || "User";
         setUserName(capitalizeFirstLetter(displayName));
 
-        try {
-          const res = await fetch(`${BASE_URL}/users`);
-          const users = await res.json();
-
-          const foundUser = users.find(
-            (u: any) => u.gmail?.toLowerCase() === email
-          );
-
-          setUserPoints(foundUser?.points || 0);
-        } catch (err) {
-          console.error("Error fetching user points:", err);
-        }
+        // Listen to Firestore user document in real-time
+        const userRef = doc(db, "users", user.uid);
+        unsubscribeUser = onSnapshot(userRef, (snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.data();
+            setUserPoints(data.points || 0);
+          } else {
+            setUserPoints(0);
+          }
+        });
       } else {
         setUserName("Guest");
         setUserPoints(0);
       }
     });
 
-    return unsubscribe;
+    return () => {
+      authUnsub();
+      if (unsubscribeUser) unsubscribeUser();
+    };
   }, []);
-
-  const capitalizeFirstLetter = (str: string) =>
-    str.charAt(0).toUpperCase() + str.slice(1);
 
   // === Fetch Promos from /rewards ===
   useEffect(() => {

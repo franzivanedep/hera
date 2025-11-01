@@ -51,7 +51,7 @@ export default function useLoginLogic() {
           const result = await signInWithCredential(auth, credential);
 
           // ✅ Save UID in AsyncStorage (professional)
-          await AsyncStorage.setItem("userUid", result.user.uid);
+          await AsyncStorage.setItem("uid", result.user.uid);
 
           router.replace("/(tabs)");
         } catch (e: any) {
@@ -83,7 +83,7 @@ export default function useLoginLogic() {
       const result = await signInWithEmailAndPassword(auth, email.trim(), password);
 
       // ✅ Save UID in AsyncStorage (professional)
-      await AsyncStorage.setItem("userUid", result.user.uid);
+      await AsyncStorage.setItem("uid", result.user.uid);
 
       router.replace("/(tabs)");
     } catch (e: any) {
