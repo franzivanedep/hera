@@ -18,40 +18,56 @@ const RewardDetail: React.FC = () => {
     imageUrl,
     description,
     points,
+    userPoints,
     loadingModalVisible,
     voucherModalVisible,
+    notEnoughModalVisible,
+    isFetching,
+    setNotEnoughModalVisible,
     handleRedeem,
     handleViewVoucher,
     handleBackHome,
   } = useRewardDetailLogic();
 
+  if (isFetching) {
+    return (
+      <View style={[styles.container, { justifyContent: "center" }]}>
+        <ActivityIndicator size="large" color="#5A4634" />
+        <Text style={{ textAlign: "center", color: "#5A4634", marginTop: 10 }}>
+          Loading reward details...
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {imageUrl ? (
-          <Image
-            source={{ uri: imageUrl }}
-            style={styles.headerImage}
-            resizeMode="cover"
-          />
-        ) : null}
+        {imageUrl && (
+          <Image source={{ uri: imageUrl }} style={styles.headerImage} resizeMode="cover" />
+        )}
 
         <View style={styles.content}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.points}>{points} Points</Text>
+          <Text style={styles.userPoints}>Your Points: {userPoints}</Text>
           <Text style={styles.description}>
             {description ||
-              "Indulge in luxury with our premium nail and beauty service, crafted to enhance your relaxation and style."}
+              "Indulge in luxury with our premium beauty service, crafted to enhance your relaxation and style."}
           </Text>
         </View>
       </ScrollView>
 
       {/* Redeem Button */}
-      <TouchableOpacity style={styles.redeemButton} onPress={handleRedeem}>
+      <TouchableOpacity
+        style={styles.redeemButton}
+        onPress={handleRedeem}
+        activeOpacity={0.8}
+      >
         <Text style={styles.redeemText}>Redeem</Text>
       </TouchableOpacity>
 
-      {/* Loading Modal */}
+      {/* Modals */}
       <Modal transparent visible={loadingModalVisible} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -61,8 +77,7 @@ const RewardDetail: React.FC = () => {
         </View>
       </Modal>
 
-      {/* Reward Ready Modal */}
-      <Modal transparent visible={voucherModalVisible} animationType="fade">
+      <Modal transparent visible={voucherModalVisible} animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.voucherContent}>
             <View style={styles.iconContainer}>
@@ -70,20 +85,47 @@ const RewardDetail: React.FC = () => {
             </View>
             <Text style={styles.voucherTitle}>Yaay! Your E-Voucher is Ready!</Text>
             <Text style={styles.voucherSubtitle}>
-              Time to treat yourself! Flash this E-Voucher at the store and redeem your reward.
+              Flash this E-Voucher at the store to redeem your reward.
             </Text>
 
-            <TouchableOpacity style={styles.voucherButton} onPress={handleViewVoucher}>
+            <TouchableOpacity
+              style={styles.voucherButton}
+              onPress={handleViewVoucher}
+              activeOpacity={0.8}
+            >
               <Text style={styles.voucherButtonText}>View E-Voucher</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.voucherButton, { backgroundColor: "#C9B79C", marginTop: 10 }]}
               onPress={handleBackHome}
+              activeOpacity={0.8}
             >
               <Text style={[styles.voucherButtonText, { color: "#5A4634" }]}>
                 Back to Home
               </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal transparent visible={notEnoughModalVisible} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.voucherContent}>
+            <View style={[styles.iconContainer, { backgroundColor: "#D9534F" }]}>
+              <Ionicons name="close" size={48} color="#FFF" />
+            </View>
+            <Text style={styles.voucherTitle}>Not Enough Points</Text>
+            <Text style={styles.voucherSubtitle}>
+              You need {points - userPoints} more points to redeem this reward.
+            </Text>
+
+            <TouchableOpacity
+              style={[styles.voucherButton, { backgroundColor: "#C9B79C" }]}
+              onPress={() => setNotEnoughModalVisible(false)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.voucherButtonText, { color: "#5A4634" }]}>OK</Text>
             </TouchableOpacity>
           </View>
         </View>

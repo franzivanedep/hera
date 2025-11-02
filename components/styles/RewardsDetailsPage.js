@@ -147,5 +147,10 @@ headerTitle: {
   fontWeight: "700",
   color: "#3C2E23",
 },
-
+userPoints: {
+  fontSize: 16,
+  fontWeight: "600",
+  color: "#8C7A65",
+  marginTop: 6,
+},
 });

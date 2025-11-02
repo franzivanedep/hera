@@ -16,7 +16,7 @@ export default function useRewardsLogic() {
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const BASE_URL = process.env.EXPO_PUBLIC_API_URL; // lagay ip address ipv4
+  const BASE_URL = process.env.EXPO_PUBLIC_API_URL; 
   const API_URL = `${BASE_URL}/rewards`;
 
   const fetchRewards = async () => {
