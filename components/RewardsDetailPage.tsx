@@ -22,23 +22,13 @@ const RewardDetail: React.FC = () => {
     loadingModalVisible,
     voucherModalVisible,
     notEnoughModalVisible,
-    isFetching,
     setNotEnoughModalVisible,
     handleRedeem,
     handleViewVoucher,
     handleBackHome,
   } = useRewardDetailLogic();
 
-  if (isFetching) {
-    return (
-      <View style={[styles.container, { justifyContent: "center" }]}>
-        <ActivityIndicator size="large" color="#5A4634" />
-        <Text style={{ textAlign: "center", color: "#5A4634", marginTop: 10 }}>
-          Loading reward details...
-        </Text>
-      </View>
-    );
-  }
+ 
 
   return (
     <View style={styles.container}>

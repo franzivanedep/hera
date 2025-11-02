@@ -1,120 +1,80 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import axios, { AxiosError, CancelTokenSource } from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { onAuthStateChanged } from "firebase/auth";
+import axios from "axios";
+import { auth } from "@/lib/firebase";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
-
-// ✅ Safe decode helper
-const safeDecode = (value: any): string => {
-  try {
-    return decodeURIComponent(value || "");
-  } catch (err) {
-    console.warn("Decoding failed for:", value);
-    return "";
-  }
-};
 
 export default function useRewardDetailLogic() {
   const params = useLocalSearchParams();
   const router = useRouter();
 
-  const rewardId = safeDecode(params.rewardId);
-  const title = safeDecode(params.title);
-  const image = safeDecode(params.image);
-  const description = safeDecode(params.description);
-  const pointsString = safeDecode(params.points);
-  const points = Number(pointsString) || 0;
+  // ✅ Decode parameters safely
+  const rewardId = params.rewardId ? decodeURIComponent(String(params.rewardId)) : "";
+  const title = params.title ? decodeURIComponent(String(params.title)) : "";
+  const image = params.image ? decodeURIComponent(String(params.image)) : "";
+  const description = params.description ? decodeURIComponent(String(params.description)) : "";
+  const points = params.points ? Number(decodeURIComponent(String(params.points))) : 0;
 
+  const [userPoints, setUserPoints] = useState<number>(0);
+  const [uid, setUid] = useState<string | null>(null);
   const [loadingModalVisible, setLoadingModalVisible] = useState(false);
   const [voucherModalVisible, setVoucherModalVisible] = useState(false);
   const [notEnoughModalVisible, setNotEnoughModalVisible] = useState(false);
-  const [userPoints, setUserPoints] = useState<number>(0);
-  const [isFetching, setIsFetching] = useState(true);
 
+  // ✅ Build full image URL
   const imageUrl =
-    typeof image === "string"
-      ? image.startsWith("http")
-        ? image
-        : `${BASE_URL}/uploads/${image}`
-      : undefined;
+    image && !image.startsWith("http") ? `${BASE_URL}/uploads/${image}` : image;
 
-  // ✅ Fetch user data from backend
-  const fetchUserData = useCallback(async (cancelToken: CancelTokenSource) => {
-    try {
-      const uid = await AsyncStorage.getItem("uid");
-      if (!uid) throw new Error("Missing UID");
-
-      const response = await axios.get(`${BASE_URL}/users/${uid}`, {
-        cancelToken: cancelToken.token,
-      });
-
-      if (response.data && typeof response.data.points === "number") {
-        setUserPoints(response.data.points);
-      } else {
-        console.warn("⚠️ Unexpected response format:", response.data);
-        setUserPoints(0);
+  // ✅ Get logged-in user UID (same logic as your QR feature)
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUid(user.uid);
+        try {
+          const res = await axios.get(`${BASE_URL}/users/${user.uid}`);
+          setUserPoints(res.data.points || 0);
+        } catch (err) {
+          console.error("Error fetching user points:", err);
+        }
       }
-    } catch (err) {
-      const error = err as AxiosError;
-      if (axios.isCancel(error)) return; // request cancelled
-
-      if (error.response?.status === 404) {
-        console.warn("User not found, defaulting points to 0.");
-        setUserPoints(0);
-      } else {
-        console.error("❌ Fetch user failed:", error.message);
-      }
-    } finally {
-      setIsFetching(false);
-    }
+    });
+    return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (!BASE_URL) {
-      console.error("❌ Missing EXPO_PUBLIC_API_URL in .env");
+  // ✅ Redeem logic
+  const handleRedeem = async () => {
+    if (!rewardId || !uid) {
+      console.warn("Missing reward ID or user UID — cannot redeem.");
       return;
     }
 
-    const cancelToken = axios.CancelToken.source();
-    fetchUserData(cancelToken);
-
-    return () => cancelToken.cancel("Request cancelled on unmount.");
-  }, [fetchUserData]);
-
-  // ✅ Handle reward redemption
-  const handleRedeem = async () => {
+    // Check if user has enough points
     if (userPoints < points) {
       setNotEnoughModalVisible(true);
       return;
     }
 
+    // Proceed with redemption
     setLoadingModalVisible(true);
-    try {
-      const uid = await AsyncStorage.getItem("uid");
-      if (!uid) throw new Error("User not logged in");
-
-      await axios.post(`${BASE_URL}/rewards/redeem`, { uid, rewardId });
-      setTimeout(() => {
-        setLoadingModalVisible(false);
-        setVoucherModalVisible(true);
-      }, 1200);
-    } catch (err) {
-      console.error("❌ Redeem failed:", err);
+    setTimeout(() => {
       setLoadingModalVisible(false);
-    }
+      setVoucherModalVisible(true);
+    }, 2000);
   };
 
+  // ✅ View voucher page
   const handleViewVoucher = () => {
     setVoucherModalVisible(false);
     router.push({
       pathname: "/voucher",
       params: {
-        rewardId: encodeURIComponent(rewardId),
-        title: encodeURIComponent(title),
-        description: encodeURIComponent(description),
+        rewardId: encodeURIComponent(String(rewardId)),
+        title: encodeURIComponent(String(title)),
+        description: encodeURIComponent(String(description)),
         points: encodeURIComponent(String(points)),
-        image: encodeURIComponent(image),
+        image: encodeURIComponent(String(image)),
       },
     });
   };
@@ -125,6 +85,7 @@ export default function useRewardDetailLogic() {
   };
 
   return {
+    rewardId,
     title,
     imageUrl,
     description,
@@ -133,7 +94,6 @@ export default function useRewardDetailLogic() {
     loadingModalVisible,
     voucherModalVisible,
     notEnoughModalVisible,
-    isFetching,
     setNotEnoughModalVisible,
     handleRedeem,
     handleViewVoucher,
