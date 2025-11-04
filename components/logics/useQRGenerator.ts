@@ -9,7 +9,10 @@ interface UserDoc {
   [key: string]: any;
 }
 
-export default function useQRGeneratorLogic(pollInterval = 5000) {
+export default function useQRGeneratorLogic(
+  qrType: "attendance" | "rewards" = "attendance",
+  pollInterval = 5000
+) {
   const [userDoc, setUserDoc] = useState<UserDoc | null>(null);
   const [qrId, setQrId] = useState<string | null>(null);
   const [qrUsed, setQrUsed] = useState<boolean>(false);
@@ -18,9 +21,7 @@ export default function useQRGeneratorLogic(pollInterval = 5000) {
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  /* ------------------------------------------------------------ */
-  /* ✅ 1️⃣ Load UID from AsyncStorage */
-  /* ------------------------------------------------------------ */
+  // ---------------- Load UID ----------------
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -30,8 +31,6 @@ export default function useQRGeneratorLogic(pollInterval = 5000) {
           setShowRefresh(true);
           return;
         }
-
-        // Only UID is needed for QR logic
         setUserDoc({ id: uid });
         setMessage("User loaded successfully.");
         setShowRefresh(false);
@@ -41,42 +40,42 @@ export default function useQRGeneratorLogic(pollInterval = 5000) {
         setShowRefresh(true);
       }
     };
-
     loadUser();
   }, []);
 
-  /* ------------------------------------------------------------ */
-  /* ✅ 2️⃣ Auto-check QR state periodically */
-  /* ------------------------------------------------------------ */
+  // ---------------- Auto-check QR ----------------
   useEffect(() => {
     if (!userDoc?.id) return;
 
     const checkOrCreateQR = async () => {
       try {
-        const qrRes = await axios.get(`${BASE_URL}/points/qr/${userDoc.id}`);
+        // 1️⃣ Fetch existing QR of this type
+        const qrRes = await axios.get(`${BASE_URL}/points/qr/${userDoc.id}`, {
+          params: { type: qrType },
+        });
 
         if (qrRes.data?.qrId && !qrRes.data.used) {
           setQrId(qrRes.data.qrId);
           setQrUsed(false);
-          setMessage("Active QR found.");
+          setMessage(`Active ${qrType} QR found.`);
           setShowRefresh(false);
         } else {
-          setMessage("No active QR found. Creating one...");
+          // 2️⃣ Create new QR if none exists
+          setMessage(`No active ${qrType} QR found. Creating one...`);
           const newQrRes = await axios.post(`${BASE_URL}/points/createQR`, {
             uid: userDoc.id,
-            type: "attendance",
-            createdAt: new Date().toISOString(),
+            type: qrType,
           });
           setQrId(newQrRes.data.qrId);
           setQrUsed(false);
-          setMessage("New QR created successfully.");
+          setMessage(`New ${qrType} QR created successfully.`);
           setShowRefresh(false);
         }
       } catch (err: any) {
         console.error("QR fetch/create error:", err?.response?.data || err.message || err);
         setQrId(null);
         setQrUsed(true);
-        setMessage("Failed to retrieve or create QR. Please try again.");
+        setMessage(`Failed to retrieve or create ${qrType} QR.`);
         setShowRefresh(true);
       }
     };
@@ -91,41 +90,35 @@ export default function useQRGeneratorLogic(pollInterval = 5000) {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [userDoc, pollInterval]);
+  }, [userDoc, qrType, pollInterval]);
 
-  /* ------------------------------------------------------------ */
-  /* ✅ 3️⃣ Manual QR regeneration */
-  /* ------------------------------------------------------------ */
+  // ---------------- Manual Regenerate ----------------
   const regenerateQR = useCallback(async () => {
     if (!userDoc?.id) return;
 
     try {
-      setMessage("Regenerating QR...");
+      setMessage(`Regenerating ${qrType} QR...`);
       const res = await axios.post(`${BASE_URL}/points/createQR`, {
         uid: userDoc.id,
-        type: "attendance",
-        regeneratedAt: new Date().toISOString(),
+        type: qrType,
       });
       setQrId(res.data.qrId);
       setQrUsed(false);
-      setMessage("QR regenerated successfully.");
+      setMessage(`${qrType} QR regenerated successfully.`);
       setShowRefresh(false);
     } catch (err: any) {
       console.error("QR regenerate error:", err?.response?.data || err.message || err);
-      setMessage("Failed to regenerate QR.");
+      setMessage(`Failed to regenerate ${qrType} QR.`);
       setShowRefresh(true);
     }
-  }, [userDoc]);
+  }, [userDoc, qrType]);
 
-  /* ------------------------------------------------------------ */
-  /* ✅ 4️⃣ Return values for UI */
-  /* ------------------------------------------------------------ */
   return {
     userDoc,
     qrId,
     qrUsed,
     message,
-    showRefresh,   // true only on failure
-    regenerateQR,  // used when showRefresh = true
+    showRefresh,
+    regenerateQR,
   };
 }
