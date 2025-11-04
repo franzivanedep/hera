@@ -1,4 +1,5 @@
-import { View, Text, FlatList, Pressable, ActivityIndicator } from "react-native";
+// TransactionsPage.tsx
+import { View, Text, FlatList, Pressable, ActivityIndicator, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTransactions } from "../../components/logics/useTransactions";
 
@@ -40,7 +41,14 @@ export default function TransactionsPage() {
           marginRight: 12,
         }}
       >
-        <Text>🧾</Text>
+        {item.image ? (
+          <Image
+            source={{ uri: item.image }}
+            style={{ width: 36, height: 36, borderRadius: 8 }}
+          />
+        ) : (
+          <Text>🧾</Text>
+        )}
       </View>
 
       <View style={{ flex: 1, paddingRight: 10 }}>
@@ -59,16 +67,21 @@ export default function TransactionsPage() {
   const renderEmpty = () => (
     <View
       style={{
-        marginTop: 24,
+        marginTop: 40,
         backgroundColor: UI.card,
-        borderRadius: 12,
+        borderRadius: 16,
         borderWidth: 1,
         borderColor: UI.border,
-        padding: 16,
+        padding: 24,
         alignItems: "center",
       }}
     >
-      <Text style={{ color: UI.sub }}>No transactions found.</Text>
+      <Text style={{ fontSize: 18, fontWeight: "600", color: UI.text, textAlign: "center" }}>
+        No transactions found
+      </Text>
+      <Text style={{ fontSize: 14, color: UI.sub, textAlign: "center", marginTop: 8 }}>
+        Your recent purchases, redemptions, and activities will appear here once available.
+      </Text>
     </View>
   );
 

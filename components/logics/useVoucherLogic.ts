@@ -1,141 +1,89 @@
 import { useEffect, useState } from "react";
-import { Alert, Share } from "react-native";
-import * as Clipboard from "expo-clipboard";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import axios from "axios";
 import { onAuthStateChanged, User } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { auth } from "@/lib/firebase";
+
+export type Tx = {
+  id: string;
+  title: string;
+  subtitle: string;
+  image?: string;
+};
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3001";
 
-interface VoucherData {
-  merchant: string;
-  pointsUsed: number;
-  title: string;
-  message: string;
-  validUntil: string;
-}
+export const useTransactions = () => {
+  const [data, setData] = useState<Tx[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-interface RewardQRResponse {
-  qrId: string;
-}
+  const formatCreatedAt = (createdAt: any): string => {
+    if (!createdAt) return "Unknown date";
 
-export default function useVoucherLogic() {
-  const router = useRouter();
-  const params = useLocalSearchParams();
-
-  /* ---------------- Reward parameters ---------------- */
-  const rewardId = Array.isArray(params.rewardId)
-    ? params.rewardId[0]
-    : params.rewardId || "unknown";
-
-  const title = Array.isArray(params.title)
-    ? params.title[0]
-    : params.title || "Reward Voucher";
-
-  const description = Array.isArray(params.description)
-    ? params.description[0]
-    : params.description || "Enjoy your reward!";
-
-  const points = Array.isArray(params.points)
-    ? params.points[0]
-    : params.points || "0";
-
-  /* ---------------- State ---------------- */
-  const [uid, setUid] = useState<string | null>(null);
-  const [qrId, setQrId] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  /* ---------------- Firebase auth listener ---------------- */
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
-      setUid(user ? user.uid : null);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  /* ---------------- Fetch or create rewards QR ---------------- */
-  useEffect(() => {
-    const fetchOrCreateRewardQR = async () => {
-      if (!uid || rewardId === "unknown") return;
-      setLoading(true);
-
-      try {
-        // 1️⃣ Fetch existing unused reward QR
-        const res = await axios.get<RewardQRResponse>(
-          `${BASE_URL}/points/active/rewards/${uid}`
-        );
-
-        if (res.data?.qrId) {
-          setQrId(res.data.qrId);
-          console.log("✅ Existing unused reward QR loaded:", res.data.qrId);
-        } else {
-          // 2️⃣ No QR found → create a new one
-          const createRes = await axios.post(`${BASE_URL}/points/createQR`, {
-            uid,
-            type: "rewards",
-            rewardId,
-          });
-          setQrId(createRes.data.qrId);
-          console.log("✅ New reward QR created:", createRes.data.qrId);
-        }
-      } catch (err: any) {
-        console.error(
-          "Error fetching or creating reward QR:",
-          err.response?.data || err.message
-        );
-        Alert.alert(
-          "Error",
-          err.response?.data?.message || "Failed to fetch or create reward QR"
-        );
-      } finally {
-        setLoading(false);
+    try {
+      // Always parse as Date
+      const date = new Date(createdAt);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleString("en-US", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        });
       }
+    } catch (err) {
+      console.warn("Failed to parse createdAt:", createdAt, err);
+    }
+
+    return "Unknown date";
+  };
+
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
+    const init = async () => {
+      unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
+        try {
+          setLoading(true);
+          setError(null);
+
+          const uid = user?.uid || (await AsyncStorage.getItem("uid"));
+          if (!uid) {
+            setData([]);
+            setLoading(false);
+            return;
+          }
+
+          if (user?.uid) await AsyncStorage.setItem("uid", user.uid);
+
+          const res = await fetch(`${BASE_URL}/transactions?uid=${uid}`);
+          const json = await res.json();
+
+          if (!json.ok) {
+            throw new Error(json.message || "Failed to fetch transactions");
+          }
+
+          const formatted: Tx[] = json.data.map((tx: any) => ({
+            id: tx.id,
+            title: tx.rewardName || tx.type || "Transaction",
+            subtitle: formatCreatedAt(tx.createdAt),
+            image: tx.rewardImage ? `${BASE_URL}${tx.rewardImage}` : undefined,
+          }));
+
+          setData(formatted);
+        } catch (err: any) {
+          console.error("❌ Error fetching transactions:", err);
+          setError(err.message || "Something went wrong");
+        } finally {
+          setLoading(false);
+        }
+      });
     };
 
-    fetchOrCreateRewardQR();
-  }, [uid, rewardId]);
+    init();
 
-  /* ---------------- Voucher display data ---------------- */
-  const voucherData: VoucherData = {
-    merchant: "HERA NAIL LOUNGE & SPA",
-    pointsUsed: Number(points),
-    title,
-    message: "Flash this E-Voucher to unlock your reward.",
-    validUntil: "Dec 31, 2025",
-  };
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
 
-  /* ---------------- Copy QR code ---------------- */
-  const copyCode = async () => {
-    if (!qrId) return;
-    try {
-      await Clipboard.setStringAsync(qrId);
-      Alert.alert("Copied", "Voucher code copied to clipboard");
-    } catch {
-      Alert.alert("Error", "Failed to copy voucher code.");
-    }
-  };
-
-  /* ---------------- Share QR code ---------------- */
-  const shareVoucher = async () => {
-    if (!qrId) return;
-    try {
-      const shareText = `${voucherData.title}\nCode: ${qrId}\nValid until: ${voucherData.validUntil}\n${voucherData.message}`;
-      await Share.share({ message: shareText, title: voucherData.title });
-    } catch {
-      Alert.alert("Error", "Couldn't open share dialog.");
-    }
-  };
-
-  /* ---------------- Navigation ---------------- */
-  const goHome = () => router.push("/");
-
-  return {
-    loading,
-    qrId,
-    voucherData,
-    copyCode,
-    shareVoucher,
-    goHome,
-  };
-}
+  return { data, loading, error };
+};

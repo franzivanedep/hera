@@ -79,7 +79,6 @@ const UserPage: React.FC = () => {
           // 🔹 Step 3: Fully clear local storage
           await AsyncStorage.clear();
 
-          console.log("✅ Fully logged out, storage cleared, and Firebase session reset.");
 
           // 🔹 Step 4: Navigate safely AFTER user is null
           router.replace("/login");
