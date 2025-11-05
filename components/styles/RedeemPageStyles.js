@@ -259,4 +259,39 @@ export default StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 10,
   },
+  modalOverlay: {
+  flex: 1,
+  justifyContent: "center",
+  alignItems: "center",
+  backgroundColor: "rgba(0,0,0,0.5)",
+},
+modalContainer: {
+  backgroundColor: "#fff",
+  borderRadius: 10,
+  padding: 20,
+  width: "80%",
+},
+modalTitle: {
+  fontSize: 18,
+  fontWeight: "bold",
+  marginBottom: 10,
+},
+modalInput: {
+  borderWidth: 1,
+  borderColor: "#ccc",
+  borderRadius: 8,
+  padding: 10,
+  marginBottom: 15,
+},
+modalButton: {
+  backgroundColor: "#9E7E63",
+  padding: 12,
+  borderRadius: 8,
+  alignItems: "center",
+},
+modalButtonText: {
+  color: "#fff",
+  fontWeight: "bold",
+},
+
 });
