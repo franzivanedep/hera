@@ -5,11 +5,12 @@ import {
   TextInput,
   TouchableOpacity,
   ImageBackground,
-  SafeAreaView,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { SafeAreaView} from "react-native-safe-area-context";
+
 import { styles } from "../components/styles/LoginStyles";
 
 interface LoginViewProps {

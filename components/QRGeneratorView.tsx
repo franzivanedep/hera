@@ -1,6 +1,7 @@
 import React from "react";
-import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {  View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import QRCode from "react-native-qrcode-svg";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface Props {
   qrPayload: string | null;

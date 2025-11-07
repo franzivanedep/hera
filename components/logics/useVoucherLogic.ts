@@ -12,7 +12,7 @@ export type Tx = {
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3001";
 
-export const useTransactions = () => {
+export const useVoucherLogic = () => {
   const [data, setData] = useState<Tx[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +21,6 @@ export const useTransactions = () => {
     if (!createdAt) return "Unknown date";
 
     try {
-      // Always parse as Date
       const date = new Date(createdAt);
       if (!isNaN(date.getTime())) {
         return date.toLocaleString("en-US", {
@@ -85,5 +84,35 @@ export const useTransactions = () => {
     };
   }, []);
 
-  return { data, loading, error };
+  // For now, simulate the props VoucherView expects:
+  const qrId = data.length > 0 ? data[0].id : null;
+
+  const voucherData = {
+    merchant: "Default Merchant",
+    pointsUsed: 100,
+    title: data[0]?.title || "Voucher",
+    message: "Show this code to redeem your reward.",
+    validUntil: "Dec 31, 2025",
+  };
+
+  const copyCode = () => {
+    if (qrId) alert(`Copied voucher code: ${qrId}`);
+  };
+
+  const shareVoucher = () => {
+    if (qrId) alert(`Shared voucher code: ${qrId}`);
+  };
+
+  const goHome = () => {
+    alert("Navigating to Home...");
+  };
+
+  return {
+    loading,
+    qrId,
+    voucherData,
+    copyCode,
+    shareVoucher,
+    goHome,
+  };
 };

@@ -5,8 +5,9 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  SafeAreaView,
 } from "react-native";
+import { SafeAreaView} from "react-native-safe-area-context";
+
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "expo-router";

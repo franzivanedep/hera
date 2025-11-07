@@ -3,10 +3,12 @@ import { ThemeProvider, DefaultTheme } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import { AuthProvider, useAuth } from "@/providers/AuthProvider";
+import { useMaintenanceStatus } from "../components/logics/useMaintenanceStatus"; // ✅ Import your hook
+import MaintenancePage from "../app/maintenance"; // ✅ Import maintenance screen
+import { ActivityIndicator, View } from "react-native";
 
 export const unstable_settings = { anchor: "(tabs)" };
 
-// ✅ keep DefaultTheme’s fonts etc., only override colors
 const BeigeTheme = {
   ...DefaultTheme,
   colors: {
@@ -34,7 +36,25 @@ function Guard({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 }
+
 export default function RootLayout() {
+  const { isMaintenance, loading } = useMaintenanceStatus();
+
+  // ✅ Show loading spinner while checking maintenance
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#9E7E63" />
+      </View>
+    );
+  }
+
+  // ✅ If maintenance mode is ON → show Maintenance Page
+  if (isMaintenance) {
+    return <MaintenancePage />;
+  }
+
+  // ✅ Otherwise, show normal app
   return (
     <ThemeProvider value={BeigeTheme}>
       <AuthProvider>

@@ -3,14 +3,14 @@ import useQRGeneratorLogic from "../../components/logics/useQRGenerator";
 import QRGeneratorView from "../../components/QRGeneratorView";
 
 const QRGeneratorController: React.FC = () => {
-  const { gmail, loading, qrId, message, regenerateQR } = useQRGeneratorLogic();
+  const { qrId, qrUsed, message, showRefresh, regenerateQR } = useQRGeneratorLogic();
 
   return (
     <QRGeneratorView
-      loading={loading}
       qrPayload={qrId}
+      qrUsed={qrUsed}
       message={message}
-      gmail={gmail}
+      showRefresh={showRefresh}
       onRegenerate={regenerateQR}
     />
   );

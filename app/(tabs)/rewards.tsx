@@ -1,5 +1,6 @@
 import React from "react";
-import { SafeAreaView, StatusBar } from "react-native";
+import { SafeAreaView} from "react-native-safe-area-context";
+import {  StatusBar } from "react-native";
 import RewardsPage from "../../components/RewardsPage";
 
 const Rewards: React.FC = () => {

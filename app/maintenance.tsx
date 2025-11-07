@@ -1,18 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function MaintenancePage() {
-  const [retrying, setRetrying] = useState(false);
-
-  const handleRetry = () => {
-    setRetrying(true);
-    setTimeout(() => {
-      setRetrying(false);
-      // You can navigate back to home or reload app here
-    }, 1500);
-  };
-
   return (
     <View style={styles.container}>
       <Ionicons name="construct-outline" size={100} color="#9E7E63" style={styles.icon} />
@@ -26,17 +16,6 @@ export default function MaintenancePage() {
         style={styles.image}
         resizeMode="cover"
       />
-
-      <TouchableOpacity
-        style={[styles.button, retrying && { opacity: 0.6 }]}
-        onPress={handleRetry}
-        disabled={retrying}
-      >
-        <Ionicons name="refresh-outline" size={20} color="#fff" />
-        <Text style={styles.buttonText}>
-          {retrying ? 'Checking...' : 'Try Again'}
-        </Text>
-      </TouchableOpacity>
 
       <Text style={styles.footer}>HERA Nail Lounge & Spa 💅</Text>
     </View>
@@ -73,24 +52,6 @@ const styles = StyleSheet.create({
     height: 180,
     borderRadius: 20,
     marginBottom: 30,
-  },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#9E7E63',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 30,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
   },
   footer: {
     position: 'absolute',
