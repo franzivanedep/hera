@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "heraapp",
+    "name": "hera Lounge & Spa",
     "slug": "heraapp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/logo.png",
     "scheme": "heraapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
