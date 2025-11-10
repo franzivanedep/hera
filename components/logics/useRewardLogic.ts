@@ -1,6 +1,6 @@
 // src/hooks/useRewardsLogic.ts
 import useSWR from "swr";
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 import { useEffect, useRef } from "react";
 
 export interface Reward {
@@ -19,11 +19,11 @@ const fetcher = async (url: string) => {
     if (!Array.isArray(res.data)) return [];
     return res.data;
   } catch (err: any) {
-    if (axios.isAxiosError(err) && err.response?.status === 429) {
-      console.warn("Rate limit reached, returning empty rewards.");
+    if (isAxiosError(err) && err.response?.status === 429) {
+      if (__DEV__) console.warn("Rate limit reached, returning empty rewards.");
       return [];
     }
-    console.error("Error fetching rewards:", err);
+    if (__DEV__) console.error("Error fetching rewards:", err);
     return [];
   }
 };
@@ -60,7 +60,9 @@ export default function useRewardsLogic() {
           ...r,
           image_url: r.image_url.startsWith("http")
             ? r.image_url
-            : `${process.env.EXPO_PUBLIC_API_URL}${r.image_url}`,
+            : `${process.env.EXPO_PUBLIC_API_URL}${
+                r.image_url.startsWith("/") ? "" : "/"
+              }${r.image_url}`,
         }))
     : [];
 

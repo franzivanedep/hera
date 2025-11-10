@@ -61,7 +61,7 @@ export default function useLoginLogic() {
     };
 
     signInWithGoogle();
-  }, [response]);
+  }, [response, router]);
 
   const normalize = (e: any): string => {
     const m = String(e?.message ?? e ?? "");

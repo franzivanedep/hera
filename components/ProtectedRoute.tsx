@@ -11,7 +11,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     if (!loading && !user) {
       router.replace("/(auth)/login"); // ✅ Navigate only after render
     }
-  }, [user, loading]);
+  }, [user, loading, router]); // ✅ Added router
 
   if (loading) {
     return (

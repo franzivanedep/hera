@@ -32,7 +32,7 @@ function Guard({ children }: { children: React.ReactNode }) {
     const inAuth = segments[0] === "(auth)";
     if (!user && !inAuth) router.replace("/(auth)/login");
     if (user && inAuth) router.replace("/(tabs)");
-  }, [user, loading, segments]);
+}, [user, loading, segments, router]); // ✅ Added router
 
   return <>{children}</>;
 }

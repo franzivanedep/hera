@@ -69,12 +69,12 @@ export default function useVoucherLogic() {
             );
             if (!checkRes.data.used) {
               qr = cachedQr;
-              console.log("✅ Loaded QR from cache:", qr);
+              if (__DEV__) console.log("✅ Loaded QR from cache:", qr);
             } else {
-              console.log("⚠ Cached QR used, will create new.");
+              if (__DEV__) console.log("⚠ Cached QR used, will create new.");
             }
           } catch {
-            console.log("⚠ /checkQR failed, will try server or create new QR");
+            if (__DEV__) console.log("⚠ /checkQR failed, will try server or create new QR");
           }
         }
 
@@ -86,12 +86,12 @@ export default function useVoucherLogic() {
             );
             if (res.data?.qrId && !res.data.used) {
               qr = res.data.qrId;
-              console.log("✅ Loaded existing unused QR from server:", qr);
+              if (__DEV__) console.log("✅ Loaded existing unused QR from server:", qr);
             } else {
-              console.log("⚠ No unused QR, will create new...");
+              if (__DEV__) console.log("⚠ No unused QR, will create new...");
             }
           } catch {
-            console.log("⚠ Failed to fetch active QR from server, creating new...");
+            if (__DEV__) console.log("⚠ Failed to fetch active QR from server, creating new...");
           }
         }
 
@@ -104,7 +104,7 @@ export default function useVoucherLogic() {
           });
           if (createRes.data?.qrId) {
             qr = createRes.data.qrId;
-            console.log("✅ New QR created:", qr);
+            if (__DEV__) console.log("✅ New QR created:", qr);
           } else {
             throw new Error("No QR returned from server");
           }
@@ -115,7 +115,7 @@ export default function useVoucherLogic() {
           await AsyncStorage.setItem(cacheKey, qr);
         }
       } catch (err: any) {
-        console.error(
+        if (__DEV__) console.error(
           "Error fetching or creating reward QR:",
           err.response?.data || err.message
         );

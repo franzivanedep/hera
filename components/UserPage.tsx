@@ -12,7 +12,6 @@ import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { signOut } from "firebase/auth";
 import { auth } from "../lib/firebase";
-import styles from "./styles/UserPageStyles";
 import { go, type UserSubRoute } from "./logics/usermenu";
 import useUserInfo from "@/hooks/useUserInfo";
 

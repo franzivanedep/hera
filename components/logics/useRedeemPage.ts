@@ -44,10 +44,10 @@ export default function useRewardsPageLogic() {
       });
       const data = await res.json();
       if (!res.ok) {
-        console.warn("⚠️ Referral reward failed:", data.message);
+        if (__DEV__) console.warn("⚠️ Referral reward failed:", data.message);
       }
     } catch (error) {
-      console.error("❌ Error calling referral endpoint:", error);
+      if (__DEV__) console.error("❌ Error calling referral endpoint:", error);
     }
   };
 
@@ -85,7 +85,6 @@ export default function useRewardsPageLogic() {
               const alreadyShown = await AsyncStorage.getItem(storageKey);
 
               if (!alreadyShown && now.isSame(createdAtDate, "day")) {
-                console.log("🎁 Showing referral modal for first time");
                 setShowReferralModal(true);
 
                 if (data.referredBy) {
@@ -97,7 +96,8 @@ export default function useRewardsPageLogic() {
                 setShowReferralModal(false);
               }
             } catch (err) {
-              console.error("❌ Error checking referral modal storage:", err);
+              if (__DEV__)
+                console.error("❌ Error checking referral modal storage:", err);
             }
           }
         });
@@ -114,7 +114,6 @@ export default function useRewardsPageLogic() {
     };
   }, [referralChecked]);
 
-  // ✅ Professional, optimized promo fetching (low frequency, no 429)
   useEffect(() => {
     let intervalId: ReturnType<typeof setInterval>;
 
@@ -140,23 +139,20 @@ export default function useRewardsPageLogic() {
         setPromos((prevPromos) => {
           const hasChanged =
             JSON.stringify(prevPromos) !== JSON.stringify(activePromos);
-          if (hasChanged) console.log("🎯 Rewards updated!");
           return hasChanged ? activePromos : prevPromos;
         });
       } catch (err) {
-        console.error("Error fetching promos:", err);
+        if (__DEV__) console.error("Error fetching promos:", err);
       }
     };
 
     fetchPromos(); // initial load
 
-    // 🕒 Professional approach: check for updates every 30s instead of 5s
     intervalId = setInterval(fetchPromos, 30000);
 
     return () => clearInterval(intervalId);
   }, []);
 
-  // Rotate promo every 4s
   useEffect(() => {
     const intervalId: ReturnType<typeof setInterval> = setInterval(() => {
       setCurrentPromo((prev) =>
