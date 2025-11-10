@@ -1,8 +1,9 @@
 // src/hooks/useRewardsLogic.ts
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 import axios from "axios";
+import { useEffect, useRef } from "react";
 
-interface Reward {
+export interface Reward {
   id: string;
   name: string;
   description: string;
@@ -12,38 +13,56 @@ interface Reward {
   is_active: boolean;
 }
 
-export default function useRewardsLogic() {
-  const [rewards, setRewards] = useState<Reward[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const BASE_URL = process.env.EXPO_PUBLIC_API_URL; 
-  const API_URL = `${BASE_URL}/rewards`;
-
-  const fetchRewards = async () => {
-    try {
-      const res = await axios.get(API_URL);
-      const data = res.data
-       
-        .filter((item: Reward) => item.is_active === true)
-        .map((item: Reward) => ({
-          ...item,
-          image_url: item.image_url.startsWith("http")
-            ? item.image_url
-            : `${BASE_URL}${item.image_url}`,
-        }));
-      setRewards(data);
-    } catch (err) {
-      console.error("Error fetching rewards:", err);
-    } finally {
-      setLoading(false);
+const fetcher = async (url: string) => {
+  try {
+    const res = await axios.get(url);
+    if (!Array.isArray(res.data)) return [];
+    return res.data;
+  } catch (err: any) {
+    if (axios.isAxiosError(err) && err.response?.status === 429) {
+      console.warn("Rate limit reached, returning empty rewards.");
+      return [];
     }
-  };
+    console.error("Error fetching rewards:", err);
+    return [];
+  }
+};
 
+export default function useRewardsLogic() {
+  const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/rewards`;
+
+  // store previous rewards to compare
+  const prevRewardsRef = useRef<Reward[]>([]);
+
+  const { data, error, mutate } = useSWR(API_URL, fetcher, {
+    refreshInterval: 5 * 60 * 1000, // automatic update every 5 min
+    revalidateOnFocus: false,       // no auto-refresh when switching tabs
+    dedupingInterval: 5 * 60 * 1000, // deduplicate multiple requests in 5 min
+  });
+
+  // compare new rewards with previous rewards
   useEffect(() => {
-    fetchRewards();
-    const interval = setInterval(fetchRewards, 5000); 
-    return () => clearInterval(interval);
-  }, []);
+    if (!Array.isArray(data)) return;
+    const prevIds = prevRewardsRef.current.map(r => r.id);
+    const newIds = data.map(r => r.id);
 
-  return { rewards, loading };
+    // Only update if there’s actually a new reward
+    const hasNew = newIds.some(id => !prevIds.includes(id));
+    if (hasNew) {
+      prevRewardsRef.current = data;
+    }
+  }, [data]);
+
+  const rewards: Reward[] = Array.isArray(data)
+    ? data
+        .filter(r => r.is_active)
+        .map(r => ({
+          ...r,
+          image_url: r.image_url.startsWith("http")
+            ? r.image_url
+            : `${process.env.EXPO_PUBLIC_API_URL}${r.image_url}`,
+        }))
+    : [];
+
+  return { rewards, loading: !data && !error, error, refresh: mutate };
 }

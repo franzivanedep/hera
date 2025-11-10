@@ -11,7 +11,7 @@ interface UserDoc {
 
 export default function useQRGeneratorLogic(
   qrType: "attendance" | "rewards" = "attendance",
-  pollInterval = 5000
+  initialPollInterval = 10000 // start with 10s
 ) {
   const [userDoc, setUserDoc] = useState<UserDoc | null>(null);
   const [qrId, setQrId] = useState<string | null>(null);
@@ -20,6 +20,7 @@ export default function useQRGeneratorLogic(
   const [showRefresh, setShowRefresh] = useState<boolean>(false);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollIntervalRef = useRef<number>(initialPollInterval);
 
   // ---------------- Load UID ----------------
   useEffect(() => {
@@ -35,7 +36,7 @@ export default function useQRGeneratorLogic(
         setMessage("User loaded successfully.");
         setShowRefresh(false);
       } catch (err: any) {
-        console.error("Error loading UID:", err.message || err);
+        console.error("Error loading UID:", err);
         setMessage("Failed to load user UID.");
         setShowRefresh(true);
       }
@@ -43,13 +44,12 @@ export default function useQRGeneratorLogic(
     loadUser();
   }, []);
 
-  // ---------------- Auto-check QR ----------------
+  // ---------------- Smart QR polling ----------------
   useEffect(() => {
     if (!userDoc?.id) return;
 
     const checkOrCreateQR = async () => {
       try {
-        // 1️⃣ Fetch existing QR of this type
         const qrRes = await axios.get(`${BASE_URL}/points/qr/${userDoc.id}`, {
           params: { type: qrType },
         });
@@ -59,8 +59,14 @@ export default function useQRGeneratorLogic(
           setQrUsed(false);
           setMessage(`Active ${qrType} QR found.`);
           setShowRefresh(false);
+
+          // ✅ Stop polling if QR is valid
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
         } else {
-          // 2️⃣ Create new QR if none exists
+          // Create new QR if none exists
           setMessage(`No active ${qrType} QR found. Creating one...`);
           const newQrRes = await axios.post(`${BASE_URL}/points/createQR`, {
             uid: userDoc.id,
@@ -72,25 +78,30 @@ export default function useQRGeneratorLogic(
           setShowRefresh(false);
         }
       } catch (err: any) {
-        console.error("QR fetch/create error:", err?.response?.data || err.message || err);
+        console.error("QR fetch/create error:", err);
         setQrId(null);
         setQrUsed(true);
         setMessage(`Failed to retrieve or create ${qrType} QR.`);
         setShowRefresh(true);
+
+        // Adaptive polling: increase interval on error
+        pollIntervalRef.current = Math.min(pollIntervalRef.current * 2, 60000); // max 1 min
       }
     };
 
-    // Initial call
+    // Initial check
     checkOrCreateQR();
 
-    // Poll periodically
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(checkOrCreateQR, pollInterval);
+    // Poll only if QR is missing or used
+    if (!qrId || qrUsed) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = setInterval(checkOrCreateQR, pollIntervalRef.current);
+    }
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [userDoc, qrType, pollInterval]);
+  }, [userDoc, qrType, qrId, qrUsed]);
 
   // ---------------- Manual Regenerate ----------------
   const regenerateQR = useCallback(async () => {
@@ -106,12 +117,15 @@ export default function useQRGeneratorLogic(
       setQrUsed(false);
       setMessage(`${qrType} QR regenerated successfully.`);
       setShowRefresh(false);
+
+      // Reset polling interval
+      pollIntervalRef.current = initialPollInterval;
     } catch (err: any) {
-      console.error("QR regenerate error:", err?.response?.data || err.message || err);
+      console.error("QR regenerate error:", err);
       setMessage(`Failed to regenerate ${qrType} QR.`);
       setShowRefresh(true);
     }
-  }, [userDoc, qrType]);
+  }, [userDoc, qrType, initialPollInterval]);
 
   return {
     userDoc,

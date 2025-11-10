@@ -1,111 +1,165 @@
-import { useEffect, useState } from "react";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { useEffect, useState, useRef } from "react";
+import { Alert, Share } from "react-native";
+import * as Clipboard from "expo-clipboard";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import axios from "axios";
+import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-
-export type Tx = {
-  id: string;
-  title: string;
-  subtitle: string;
-  image?: string;
-};
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3001";
 
-export const useVoucherLogic = () => {
-  const [data, setData] = useState<Tx[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface VoucherData {
+  merchant: string;
+  pointsUsed: number;
+  title: string;
+  message: string;
+  validUntil: string;
+}
 
-  const formatCreatedAt = (createdAt: any): string => {
-    if (!createdAt) return "Unknown date";
+interface RewardQRResponse {
+  qrId: string;
+  used?: boolean;
+}
 
-    try {
-      const date = new Date(createdAt);
-      if (!isNaN(date.getTime())) {
-        return date.toLocaleString("en-US", {
-          dateStyle: "medium",
-          timeStyle: "short",
-        });
-      }
-    } catch (err) {
-      console.warn("Failed to parse createdAt:", createdAt, err);
-    }
+export default function useVoucherLogic() {
+  const router = useRouter();
+  const params = useLocalSearchParams();
 
-    return "Unknown date";
-  };
+  const rewardId = Array.isArray(params.rewardId)
+    ? params.rewardId[0]
+    : params.rewardId || "unknown";
+
+  const title = Array.isArray(params.title)
+    ? params.title[0]
+    : params.title || "Reward Voucher";
+
+  const points = Array.isArray(params.points)
+    ? params.points[0]
+    : params.points || "0";
+
+  const [uid, setUid] = useState<string | null>(null);
+  const [qrId, setQrId] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
-
-    const init = async () => {
-      unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
-        try {
-          setLoading(true);
-          setError(null);
-
-          const uid = user?.uid || (await AsyncStorage.getItem("uid"));
-          if (!uid) {
-            setData([]);
-            setLoading(false);
-            return;
-          }
-
-          if (user?.uid) await AsyncStorage.setItem("uid", user.uid);
-
-          const res = await fetch(`${BASE_URL}/transactions?uid=${uid}`);
-          const json = await res.json();
-
-          if (!json.ok) {
-            throw new Error(json.message || "Failed to fetch transactions");
-          }
-
-          const formatted: Tx[] = json.data.map((tx: any) => ({
-            id: tx.id,
-            title: tx.rewardName || tx.type || "Transaction",
-            subtitle: formatCreatedAt(tx.createdAt),
-            image: tx.rewardImage ? `${BASE_URL}${tx.rewardImage}` : undefined,
-          }));
-
-          setData(formatted);
-        } catch (err: any) {
-          console.error("❌ Error fetching transactions:", err);
-          setError(err.message || "Something went wrong");
-        } finally {
-          setLoading(false);
-        }
-      });
-    };
-
-    init();
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
+    const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
+      setUid(user ? user.uid : null);
+    });
+    return () => unsubscribe();
   }, []);
 
-  // For now, simulate the props VoucherView expects:
-  const qrId = data.length > 0 ? data[0].id : null;
+  useEffect(() => {
+    const fetchOrCreateRewardQR = async () => {
+      if (!uid || rewardId === "unknown" || fetchedRef.current) return;
+      fetchedRef.current = true;
+      setLoading(true);
 
-  const voucherData = {
-    merchant: "Default Merchant",
-    pointsUsed: 100,
-    title: data[0]?.title || "Voucher",
-    message: "Show this code to redeem your reward.",
+      try {
+        const cacheKey = `rewardQR_${uid}_${rewardId}`;
+        let qr: string | null = null;
+
+        // 1️⃣ Try cached QR
+        const cachedQr = await AsyncStorage.getItem(cacheKey);
+        if (cachedQr) {
+          try {
+            const checkRes = await axios.get<RewardQRResponse>(
+              `${BASE_URL}/points/checkQR/${cachedQr}`
+            );
+            if (!checkRes.data.used) {
+              qr = cachedQr;
+              console.log("✅ Loaded QR from cache:", qr);
+            } else {
+              console.log("⚠ Cached QR used, will create new.");
+            }
+          } catch {
+            console.log("⚠ /checkQR failed, will try server or create new QR");
+          }
+        }
+
+        // 2️⃣ Try server active QR if cache invalid
+        if (!qr) {
+          try {
+            const res = await axios.get<RewardQRResponse>(
+              `${BASE_URL}/points/active/rewards/${uid}`
+            );
+            if (res.data?.qrId && !res.data.used) {
+              qr = res.data.qrId;
+              console.log("✅ Loaded existing unused QR from server:", qr);
+            } else {
+              console.log("⚠ No unused QR, will create new...");
+            }
+          } catch {
+            console.log("⚠ Failed to fetch active QR from server, creating new...");
+          }
+        }
+
+        // 3️⃣ Always create new QR if qr is still null
+        if (!qr) {
+          const createRes = await axios.post(`${BASE_URL}/points/createQR`, {
+            uid,
+            type: "rewards",
+            rewardId,
+          });
+          if (createRes.data?.qrId) {
+            qr = createRes.data.qrId;
+            console.log("✅ New QR created:", qr);
+          } else {
+            throw new Error("No QR returned from server");
+          }
+        }
+
+        setQrId(qr);
+        if (qr) {
+          await AsyncStorage.setItem(cacheKey, qr);
+        }
+      } catch (err: any) {
+        console.error(
+          "Error fetching or creating reward QR:",
+          err.response?.data || err.message
+        );
+        Alert.alert(
+          "Error",
+          err.response?.data?.message || "Failed to fetch or create reward QR"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrCreateRewardQR();
+  }, [uid, rewardId]);
+
+  const voucherData: VoucherData = {
+    merchant: "HERA NAIL LOUNGE & SPA",
+    pointsUsed: Number(points),
+    title,
+    message: "Flash this E-Voucher to unlock your reward.",
     validUntil: "Dec 31, 2025",
   };
 
-  const copyCode = () => {
-    if (qrId) alert(`Copied voucher code: ${qrId}`);
+  const copyCode = async () => {
+    if (!qrId) return;
+    try {
+      await Clipboard.setStringAsync(qrId);
+      Alert.alert("Copied", "Voucher code copied to clipboard");
+    } catch {
+      Alert.alert("Error", "Failed to copy voucher code.");
+    }
   };
 
-  const shareVoucher = () => {
-    if (qrId) alert(`Shared voucher code: ${qrId}`);
+  const shareVoucher = async () => {
+    if (!qrId) return;
+    try {
+      const shareText = `${voucherData.title}\nCode: ${qrId}\nValid until: ${voucherData.validUntil}\n${voucherData.message}`;
+      await Share.share({ message: shareText, title: voucherData.title });
+    } catch {
+      Alert.alert("Error", "Couldn't open share dialog.");
+    }
   };
 
-  const goHome = () => {
-    alert("Navigating to Home...");
-  };
+  const goHome = () => router.push("/");
 
   return {
     loading,
@@ -115,4 +169,4 @@ export const useVoucherLogic = () => {
     shareVoucher,
     goHome,
   };
-};
+}

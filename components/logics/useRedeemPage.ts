@@ -30,12 +30,11 @@ export default function useRewardsPageLogic() {
   const [currentPromo, setCurrentPromo] = useState<number>(0);
   const [promos, setPromos] = useState<Promo[]>([]);
   const [showReferralModal, setShowReferralModal] = useState<boolean>(false);
-  const [referralChecked, setReferralChecked] = useState<boolean>(false); // ✅ Prevent race condition
+  const [referralChecked, setReferralChecked] = useState<boolean>(false);
 
   const capitalizeFirstLetter = (str: string) =>
     str.charAt(0).toUpperCase() + str.slice(1);
 
-  // ✅ Referral reward logic
   const handleReferralReward = async (referredBy: string) => {
     try {
       const res = await fetch(`${BASE_URL}/users/referral`, {
@@ -77,7 +76,6 @@ export default function useRewardsPageLogic() {
             createdAtDate = dayjs(createdAt).tz("Asia/Manila");
           }
 
-          // 🕒 Wait until storage is checked before possibly showing modal
           if (!referralChecked && createdAtDate) {
             setReferralChecked(true);
             const now = dayjs().tz("Asia/Manila");
@@ -116,8 +114,10 @@ export default function useRewardsPageLogic() {
     };
   }, [referralChecked]);
 
-  // Fetch promos
+  // ✅ Professional, optimized promo fetching (low frequency, no 429)
   useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval>;
+
     const fetchPromos = async () => {
       try {
         const res = await fetch(`${BASE_URL}/rewards`);
@@ -137,25 +137,33 @@ export default function useRewardsPageLogic() {
             subtitle: reward.description,
           }));
 
-        setPromos(activePromos);
+        setPromos((prevPromos) => {
+          const hasChanged =
+            JSON.stringify(prevPromos) !== JSON.stringify(activePromos);
+          if (hasChanged) console.log("🎯 Rewards updated!");
+          return hasChanged ? activePromos : prevPromos;
+        });
       } catch (err) {
         console.error("Error fetching promos:", err);
       }
     };
 
-    fetchPromos();
-    const interval = setInterval(fetchPromos, 5000);
-    return () => clearInterval(interval);
+    fetchPromos(); // initial load
+
+    // 🕒 Professional approach: check for updates every 30s instead of 5s
+    intervalId = setInterval(fetchPromos, 30000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
-  // Promo rotation
+  // Rotate promo every 4s
   useEffect(() => {
-    const interval = setInterval(() => {
+    const intervalId: ReturnType<typeof setInterval> = setInterval(() => {
       setCurrentPromo((prev) =>
         promos.length ? (prev + 1) % promos.length : 0
       );
     }, 4000);
-    return () => clearInterval(interval);
+    return () => clearInterval(intervalId);
   }, [promos.length]);
 
   const actions: ActionItem[] = [
