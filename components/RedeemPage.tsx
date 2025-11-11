@@ -46,9 +46,12 @@ const handleReferralSubmit = async () => {
 
   console.log("Submitting referral code:", referralCode);
 
-  await handleReferralReward(referralCode.trim()); // ✅ call the backend
+  await handleReferralReward(referralCode.trim());
   setReferralCode("");
   setShowReferralModal(false);
+
+
+  router.push("/user/tour");
 };
 
   return (
@@ -177,16 +180,20 @@ const handleReferralSubmit = async () => {
           >
             {/* ❌ Close button */}
             <TouchableOpacity
-              onPress={() => setShowReferralModal(false)}
-              style={{
-                position: "absolute",
-                right: 10,
-                top: 10,
-                padding: 5,
-              }}
-            >
-              <Ionicons name="close" size={22} color="#333" />
-            </TouchableOpacity>
+            onPress={() => {
+              setShowReferralModal(false);
+              router.push("/user/tour"); // 👈 Navigate when modal is closed
+            }}
+            style={{
+              position: "absolute",
+              right: 10,
+              top: 10,
+              padding: 5,
+            }}
+          >
+            <Ionicons name="close" size={22} color="#333" />
+          </TouchableOpacity>
+
 
             <Text
               style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}

@@ -4,13 +4,15 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from "react-native";
-import { SafeAreaView} from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase"; // added db for Firestore
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 export default function SignUp() {
   const router = useRouter();
@@ -36,6 +38,19 @@ export default function SignUp() {
     return () => clearInterval(interval);
   }, [cooldown]);
 
+  // ✅ Helper: Check if email already exists in Firestore
+  async function emailExists(email: string) {
+    const q = query(collection(db, "users"), where("gmail", "==", email));
+    const snapshot = await getDocs(q);
+    return !snapshot.empty;
+  }
+
+  // ✅ Helper: Validate email format
+  function isValidEmail(email: string) {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  }
+
   // 1️⃣ Send verification code
   async function sendCode() {
     if (!email.trim()) {
@@ -43,15 +58,28 @@ export default function SignUp() {
       return;
     }
 
-    if (sendCount >= MAX_SENDS) {
-      setErr("Too many attempts. Please wait before trying again.");
+    if (!isValidEmail(email.trim())) {
+      setErr("Please enter a valid email address.");
       return;
     }
 
+    // Check if email exists
     setBusy(true);
     setErr(null);
-
     try {
+      const exists = await emailExists(email.trim());
+      if (exists) {
+        setErr("This email is already registered.");
+        setBusy(false);
+        return;
+      }
+
+      if (sendCount >= MAX_SENDS) {
+        setErr("Too many attempts. Please wait before trying again.");
+        setBusy(false);
+        return;
+      }
+
       const res = await fetch(`${BASE_URL}/email/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -101,10 +129,8 @@ export default function SignUp() {
       );
       const uid = userCredential.user.uid;
 
-      // Save UID in AsyncStorage
       await AsyncStorage.setItem("uid", uid);
 
-      // Send UID + Gmail to backend (UID will be the document ID)
       const backendRes = await fetch(`${BASE_URL}/users/newUser`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -202,6 +228,19 @@ export default function SignUp() {
           >
             {`Attempts left: ${MAX_SENDS - sendCount}`}
           </Text>
+
+          <Text
+            style={{
+              textAlign: "center",
+              fontSize: 12,
+              color: "#6A5C50",
+              marginTop: 10,
+            }}
+          >
+            By signing up, you agree to our Terms & Privacy Policy. We only
+            collect your Gmail for account verification and do not store any
+            other personal information.
+          </Text>
         </>
       ) : (
         <>
@@ -239,7 +278,9 @@ export default function SignUp() {
       )}
 
       {err && (
-        <Text style={{ color: "#b3261e", textAlign: "center", marginTop: 10 }}>
+        <Text
+          style={{ color: "#b3261e", textAlign: "center", marginTop: 10 }}
+        >
           {err}
         </Text>
       )}

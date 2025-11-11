@@ -1,50 +1,36 @@
 // app/user/tour.tsx
 import { useMemo, useRef, useState } from "react";
-import { View, Text, FlatList, Pressable, Dimensions } from "react-native";
+import { View, Text, FlatList, Pressable, Dimensions, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
 const UI = {
   bg: "#FFF8F2",
-  card: "#FFFFFF",
-  border: "#EEE3D9",
-  text: "#4B3F35",
-  sub: "#7B6A59",
   dot: "#D6C6B8",
   dotActive: "#4B3F35",
   btn: "#111827",
-  btnDisabled: "#B49A86",
   btnText: "#FFFFFF",
+  text: "#4B3F35",
+  sub: "#7B6A59",
+  border: "#EEE3D9",
 };
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
-type Slide = { key: string; emoji: string; title: string; body: string };
+type Slide = { key: string; image: any };
 
 const SLIDES: Slide[] = [
   {
     key: "welcome",
-    emoji: "👋",
-    title: "Welcome to Hera",
-    body: "Your all-in-one hub for points, purchases, and rewards.",
+    image: require("@/assets/images/explore/1.png"),
   },
   {
     key: "track",
-    emoji: "🧾",
-    title: "Track Transactions",
-    body: "See purchases and top-ups at a glance with clean summaries.",
+    image: require("@/assets/images/explore/2.png"),
   },
   {
     key: "redeem",
-    emoji: "🎁",
-    title: "Redeem Rewards",
-    body: "Enter codes or scan to convert vouchers into perks.",
-  },
-  {
-    key: "security",
-    emoji: "🔒",
-    title: "Private & Secure",
-    body: "Your data stays yours. We keep things tidy and safe.",
+    image: require("@/assets/images/explore/3.png"),
   },
 ];
 
@@ -78,70 +64,26 @@ export default function AppTour() {
     if (!isLast) goTo(index + 1);
   };
 
-  const onSkip = () => {
-    router.back(); // returns to /user menu; change to router.replace("/user") if you prefer
-  };
-
-  const onDone = () => {
-    router.back();
-  };
+  const onSkip = () => router.back();
+  const onDone = () => router.back();
 
   const renderItem = ({ item }: { item: Slide }) => (
-    <View style={{ width, paddingHorizontal: 20, paddingTop: 16 }}>
-      <View
+    <View style={{ width, alignItems: "center", justifyContent: "center" }}>
+      <Image
+        source={item.image}
         style={{
-          backgroundColor: UI.card,
-          borderRadius: 18,
-          borderWidth: 1,
-          borderColor: UI.border,
-          paddingVertical: 32,
-          paddingHorizontal: 20,
-          alignItems: "center",
+          width: width,
+          height: height * 0.85, // almost full screen
+          resizeMode: "contain",
         }}
-      >
-        <View
-          style={{
-            width: 96,
-            height: 96,
-            borderRadius: 24,
-            backgroundColor: "#F6EDE5",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: 18,
-          }}
-        >
-          <Text style={{ fontSize: 40 }}>{item.emoji}</Text>
-        </View>
-
-        <Text style={{ fontSize: 22, fontWeight: "800", color: UI.text, textAlign: "center" }}>
-          {item.title}
-        </Text>
-        <Text
-          style={{
-            marginTop: 10,
-            color: UI.sub,
-            fontSize: 15,
-            textAlign: "center",
-            lineHeight: 22,
-          }}
-        >
-          {item.body}
-        </Text>
-      </View>
+      />
     </View>
   );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: UI.bg }}>
       {/* Header */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 6, paddingBottom: 4, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-        <Text style={{ fontSize: 20, fontWeight: "800", color: UI.text }}>App Tour</Text>
-        {!isLast && (
-          <Pressable onPress={onSkip} accessibilityRole="button">
-            <Text style={{ color: UI.sub, fontWeight: "700" }}>Skip</Text>
-          </Pressable>
-        )}
-      </View>
+      
 
       {/* Slides */}
       <FlatList
@@ -156,8 +98,9 @@ export default function AppTour() {
         viewabilityConfig={viewConfigRef.current}
       />
 
-      {/* Dots + Actions */}
+      {/* Dots + Buttons */}
       <View style={{ paddingHorizontal: 16, paddingBottom: 16, gap: 12 }}>
+        {/* Dots */}
         <View style={{ alignSelf: "center", flexDirection: "row", gap: 8, marginTop: 8 }}>
           {SLIDES.map((_, i) => (
             <View
@@ -172,6 +115,7 @@ export default function AppTour() {
           ))}
         </View>
 
+        {/* Navigation Buttons */}
         <View style={{ flexDirection: "row", gap: 10 }}>
           {!isLast ? (
             <>
