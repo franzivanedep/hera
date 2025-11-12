@@ -14,6 +14,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import { go, type UserSubRoute } from "./logics/usermenu";
 import useUserInfo from "@/hooks/useUserInfo";
+import styles from "../components/styles/UserPageStyles";
 
 const { width } = Dimensions.get("window");
 
@@ -55,83 +56,65 @@ const UserPage: React.FC = () => {
     { icon: "document-text-outline", label: "Legal" },
   ];
 
- const handleLogout = () =>
-  Alert.alert("Log out", "Are you sure you want to log out?", [
-    { text: "Cancel", style: "cancel" },
-    {
-      text: "Log out",
-      onPress: async () => {
-        try {
-          // 🔹 Step 1: Forcefully sign out from Firebase
-          await signOut(auth);
-
-          // 🔹 Step 2: Wait for Firebase to actually clear the user
-          await new Promise<void>((resolve) => {
-            const unsub = auth.onAuthStateChanged((user) => {
-              if (!user) {
-                unsub();
-                resolve();
-              }
+  const handleLogout = () =>
+    Alert.alert("Log out", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Log out",
+        onPress: async () => {
+          try {
+            await signOut(auth);
+            await new Promise<void>((resolve) => {
+              const unsub = auth.onAuthStateChanged((user) => {
+                if (!user) {
+                  unsub();
+                  resolve();
+                }
+              });
             });
-          });
-
-          // 🔹 Step 3: Fully clear local storage
-          await AsyncStorage.clear();
-
-
-          // 🔹 Step 4: Navigate safely AFTER user is null
-          router.replace("/login");
-        } catch (error) {
-          console.warn("Logout error:", error);
-        }
+            await AsyncStorage.clear();
+            router.replace("/login");
+          } catch (error) {
+            console.warn("Logout error:", error);
+          }
+        },
       },
-    },
-  ]);
+    ]);
 
   const renderSection = (title: string, items: MenuItem[]) => (
-    <View style={{ marginBottom: 20 }}>
+    <View style={{ marginBottom: 24 }}>
       <Text
-        style={{
-          fontSize: 16,
-          fontWeight: "700",
-          color: "#3A2E23",
-          marginLeft: 20,
-          marginBottom: 12,
-        }}
+        style={[
+          styles.sectionTitle,
+          width > 800 && { fontSize: 18, marginLeft: 10 },
+        ]}
       >
         {title}
       </Text>
-
-      <View
-        style={{
-          flexDirection: "row",
-          flexWrap: "wrap",
-          justifyContent: "flex-start",
-          paddingHorizontal: 10,
-        }}
-      >
+      <View style={styles.iconGrid}>
         {items.map((item, index) => (
           <TouchableOpacity
             key={index}
-            style={{
-              width: width / 4,
-              alignItems: "center",
-              marginVertical: 12,
-            }}
+            style={[
+              styles.iconItem,
+              width > 800 && { width: "20%", marginVertical: 14 },
+            ]}
             activeOpacity={0.7}
             onPress={() => {
               const key = routeMap[item.label];
               if (key) go(key);
             }}
           >
-            <Ionicons name={item.icon} size={28} color="#3A2E23" />
+            <Ionicons
+              name={item.icon}
+              size={width > 800 ? 40 : 28}
+              color="#3A2E23"
+            />
             <Text
-              style={{
-                fontSize: 13,
-                color: "#3A2E23",
-                marginTop: 6,
-                textAlign: "center",
-              }}
+              style={[
+                styles.iconLabel,
+                width > 800 && { fontSize: 15 },
+              ]}
             >
               {item.label}
             </Text>
@@ -144,7 +127,7 @@ const UserPage: React.FC = () => {
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
-      style={{ backgroundColor: "#F8F4EF", flex: 1 }}
+      style={styles.container}
       contentContainerStyle={{ paddingBottom: 60 }}
     >
       {/* Header */}
@@ -157,31 +140,43 @@ const UserPage: React.FC = () => {
         }}
       >
         <View
-          style={{
-            width: 72,
-            height: 72,
-            borderRadius: 36,
-            backgroundColor: "#E8DCC3",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          style={[
+            styles.avatarCircle,
+            width > 800 && {
+              width: 100,
+              height: 100,
+              borderRadius: 50,
+            },
+          ]}
         >
-          <Ionicons name="person-outline" size={42} color="#3A2E23" />
+          <Ionicons
+            name="person-outline"
+            size={width > 800 ? 60 : 42}
+            color="#3A2E23"
+          />
         </View>
         <View style={{ marginLeft: 16 }}>
-          <Text style={{ fontSize: 22, fontWeight: "700", color: "#3A2E23" }}>
+          <Text
+            style={[
+              styles.userName,
+              width > 800 && { fontSize: 28 },
+            ]}
+          >
             {displayName || "Guest User"}
           </Text>
-          {email ? (
-            <Text style={{ fontSize: 14, color: "#6E6258" }}>{email}</Text>
-          ) : (
-            <Text style={{ fontSize: 14, color: "#6E6258" }}>No email</Text>
-          )}
+          <Text
+            style={[
+              styles.subText,
+              width > 800 && { fontSize: 16 },
+            ]}
+          >
+            {email || "No email"}
+          </Text>
         </View>
       </View>
 
       {/* Sections */}
-      <View style={{ paddingTop: 24 }}>
+      <View style={{ paddingHorizontal: 15, paddingTop: 24 }}>
         {renderSection("Activity", activityItems)}
         {renderSection("Vouchers", voucherItems)}
         {renderSection("Support & Settings", supportItems)}
@@ -190,41 +185,35 @@ const UserPage: React.FC = () => {
       {/* Logout */}
       <TouchableOpacity
         onPress={handleLogout}
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#E8DCC3",
-          paddingVertical: 18,
-          borderRadius: 16,
-          width: width - 40,
-          alignSelf: "center",
-          marginTop: 10,
-        }}
+        style={[
+          styles.logoutButton,
+          width > 800 && { paddingVertical: 20, width: "90%" },
+        ]}
         activeOpacity={0.8}
       >
-        <Ionicons name="log-out-outline" size={24} color="#A64B2A" />
+        <Ionicons
+          name="log-out-outline"
+          size={width > 800 ? 30 : 24}
+          color="#A64B2A"
+        />
         <Text
-          style={{
-            fontSize: 16,
-            fontWeight: "600",
-            color: "#A64B2A",
-            marginLeft: 8,
-          }}
+          style={[
+            styles.logoutText,
+            width > 800 && { fontSize: 18 },
+          ]}
         >
           Log out
         </Text>
       </TouchableOpacity>
 
       {/* Footer */}
-      <View
-        style={{
-          alignItems: "center",
-          marginTop: 16,
-          marginBottom: 24,
-        }}
-      >
-        <Text style={{ color: "#8B7E74", fontSize: 13 }}>
+      <View style={styles.footer}>
+        <Text
+          style={[
+            styles.footerText,
+            width > 800 && { fontSize: 14 },
+          ]}
+        >
           Software version V1.3.1(658)
         </Text>
       </View>

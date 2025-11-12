@@ -1,4 +1,6 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Dimensions } from "react-native";
+
+const { width } = Dimensions.get("window");
 
 export default StyleSheet.create({
   container: {
@@ -6,68 +8,33 @@ export default StyleSheet.create({
     backgroundColor: "#F8F4EF",
   },
 
-  profileCard: {
-    backgroundColor: "#fff",
-    marginVertical: 10,
-    marginHorizontal: 15,
-    borderRadius: 16,
-    padding: 18,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 2,
-  },
-
-  avatarContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
   avatarCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#EFE6DA",
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#E8DCC3",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 15,
-  },
-
-  profileText: {
-    flexDirection: "column",
   },
 
   userName: {
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 22,
+    fontWeight: "700",
     color: "#3A2E23",
   },
 
   subText: {
-    color: "#A18B77",
-    fontSize: 13,
+    color: "#6E6258",
+    fontSize: 14,
     marginTop: 4,
   },
 
-  sectionCard: {
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    marginHorizontal: 15,
-    marginTop: 10,
-    padding: 15,
-    shadowColor: "#000",
-    shadowOpacity: 0.03,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 3,
-    elevation: 1,
-  },
-
   sectionTitle: {
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "700",
     color: "#3A2E23",
     marginBottom: 12,
+    marginLeft: 5,
   },
 
   iconGrid: {
@@ -93,18 +60,18 @@ export default StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#fff",
-    marginTop: 20,
-    marginHorizontal: 15,
+    backgroundColor: "#E8DCC3",
     borderRadius: 14,
-    paddingVertical: 14,
-    gap: 6,
+    paddingVertical: 16,
+    marginHorizontal: 20,
+    marginTop: 20,
   },
 
   logoutText: {
-    fontSize: 15,
-    fontWeight: "500",
+    fontSize: 16,
+    fontWeight: "600",
     color: "#A64B2A",
+    marginLeft: 8,
   },
 
   footer: {
