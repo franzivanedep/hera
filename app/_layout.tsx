@@ -3,9 +3,14 @@ import { ThemeProvider, DefaultTheme } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import { AuthProvider, useAuth } from "@/providers/AuthProvider";
-import { useMaintenanceStatus } from "../components/logics/useMaintenanceStatus"; // ✅ Import your hook
-import MaintenancePage from "../app/maintenance"; // ✅ Import maintenance screen
+import { useMaintenanceStatus } from "../components/logics/useMaintenanceStatus";
+import MaintenancePage from "../app/maintenance";
 import { ActivityIndicator, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+// 🧩 Import Network context + banner
+import { NetworkProvider } from "../context/NetworkProvider";
+import OfflineBanner from "../components/offlineBanner"; 
 
 export const unstable_settings = { anchor: "(tabs)" };
 
@@ -32,7 +37,7 @@ function Guard({ children }: { children: React.ReactNode }) {
     const inAuth = segments[0] === "(auth)";
     if (!user && !inAuth) router.replace("/(auth)/login");
     if (user && inAuth) router.replace("/(tabs)");
-}, [user, loading, segments, router]); // ✅ Added router
+  }, [user, loading, segments, router]);
 
   return <>{children}</>;
 }
@@ -40,7 +45,7 @@ function Guard({ children }: { children: React.ReactNode }) {
 export default function RootLayout() {
   const { isMaintenance, loading } = useMaintenanceStatus();
 
-  // ✅ Show loading spinner while checking maintenance
+  // Show loading spinner while checking maintenance
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -49,34 +54,41 @@ export default function RootLayout() {
     );
   }
 
-  // ✅ If maintenance mode is ON → show Maintenance Page
+  // If maintenance mode is ON → show Maintenance Page
   if (isMaintenance) {
     return <MaintenancePage />;
   }
 
-  // ✅ Otherwise, show normal app
+  // Otherwise, show normal app
   return (
     <ThemeProvider value={BeigeTheme}>
       <AuthProvider>
-        <Guard>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="user" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="modal"
-              options={{
-                presentation: "modal",
-                headerShown: true,
-                title: "Modal",
-                headerStyle: { backgroundColor: "#F3EDE3" },
-                headerTintColor: "#3C2E23",
-                headerTitleStyle: { fontWeight: "600" },
-              }}
-            />
-          </Stack>
-          <StatusBar style="dark" backgroundColor="#FAF9F7" />
-        </Guard>
+        <NetworkProvider>
+          <SafeAreaView style={{ flex: 1 }}>
+            {/* 🔴 Show banner globally at top */}
+            <OfflineBanner />
+
+            <Guard>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="user" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="modal"
+                  options={{
+                    presentation: "modal",
+                    headerShown: true,
+                    title: "Modal",
+                    headerStyle: { backgroundColor: "#F3EDE3" },
+                    headerTintColor: "#3C2E23",
+                    headerTitleStyle: { fontWeight: "600" },
+                  }}
+                />
+              </Stack>
+              <StatusBar style="dark" backgroundColor="#FAF9F7" />
+            </Guard>
+          </SafeAreaView>
+        </NetworkProvider>
       </AuthProvider>
     </ThemeProvider>
   );
