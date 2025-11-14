@@ -118,9 +118,10 @@ const handleReferralSubmit = async () => {
         <View style={[styles.section, { marginBottom: 40 }]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>This Period’s Gift</Text>
-            <TouchableOpacity>
+           <TouchableOpacity onPress={() => router.push("/rewards")}>
               <Text style={styles.seeAll}>SEE ALL</Text>
-            </TouchableOpacity>
+          </TouchableOpacity>
+
           </View>
 
           <ScrollView

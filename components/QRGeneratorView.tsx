@@ -1,17 +1,16 @@
 import React from "react";
-import {  View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface Props {
   qrPayload: string | null;
   qrUsed: boolean;
-  message: string;
-  showRefresh: boolean;   // 👈 new: only show button when needed
+  showRefresh: boolean;
   onRegenerate: () => void;
 }
 
-const QRGeneratorView: React.FC<Props> = ({ qrPayload, qrUsed, message, showRefresh, onRegenerate }) => {
+const QRGeneratorView: React.FC<Props> = ({ qrPayload, qrUsed, showRefresh, onRegenerate }) => {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
@@ -19,18 +18,18 @@ const QRGeneratorView: React.FC<Props> = ({ qrPayload, qrUsed, message, showRefr
 
         <View style={styles.qrCard}>
           {qrPayload && !qrUsed ? (
-            <>
-              <QRCode value={qrPayload} size={220} color="#5A4634" />
-              <Text style={styles.qrIdText}>{qrPayload}</Text>
-            </>
+            <QRCode value={qrPayload} size={220} color="#5A4634" />
           ) : (
-            <Text style={styles.generatingText}>{message}</Text>
+            <View style={styles.placeholder}>
+              <Text style={styles.placeholderText}>Generating QR...</Text>
+            </View>
           )}
         </View>
 
-        <Text style={styles.infoText}>{message}</Text>
+        {qrPayload && !qrUsed && (
+          <Text style={styles.qrIdText}>{qrPayload}</Text>
+        )}
 
-        {/* ✅ Only show refresh button when error occurred */}
         {showRefresh && (
           <TouchableOpacity style={styles.button} onPress={onRegenerate}>
             <Text style={styles.buttonText}>Refresh QR</Text>
@@ -46,57 +45,65 @@ export default QRGeneratorView;
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#F8F1E4",
+    backgroundColor: "#FAF6F0",
   },
   container: {
     flex: 1,
     alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 20,
-    paddingTop: 50,
   },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: "700",
     color: "#5A4634",
-    marginBottom: 40,
+    marginBottom: 50,
   },
   qrCard: {
     width: 280,
     height: 280,
-    borderRadius: 24,
+    borderRadius: 28,
     backgroundColor: "#FFF8EE",
     justifyContent: "center",
     alignItems: "center",
-    elevation: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 10,
     marginBottom: 20,
-    padding: 10,
   },
-  generatingText: {
-    color: "#8A7A63",
-    textAlign: "center",
+  placeholder: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  placeholderText: {
+    color: "#BFAF8F",
+    fontSize: 16,
+    fontWeight: "500",
   },
   qrIdText: {
-    marginTop: 10,
+    marginTop: 15,
     color: "#5A4634",
-    fontSize: 12,
+    fontSize: 14,
     textAlign: "center",
-  },
-  infoText: {
-    color: "#5A4634",
-    textAlign: "center",
-    marginBottom: 20,
-    fontSize: 14.5,
-    lineHeight: 22,
+    fontWeight: "500",
   },
   button: {
+    marginTop: 30,
     backgroundColor: "#5A4634",
     paddingVertical: 14,
-    paddingHorizontal: 35,
-    borderRadius: 14,
+    paddingHorizontal: 40,
+    borderRadius: 18,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 15,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 6,
   },
   buttonText: {
-    color: "#F8F1E4",
+    color: "#FAF6F0",
     fontWeight: "600",
-    fontSize: 15,
+    fontSize: 16,
   },
 });

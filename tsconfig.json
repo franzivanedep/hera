@@ -4,7 +4,10 @@
     "moduleResolution": "Bundler",
     "jsx": "react-native",
     "baseUrl": ".",
-    "paths": { "@/*": ["*"] },
+    "paths": {
+      "@/*": ["*"],
+      "@firebase/auth": ["./node_modules/firebase/node_modules/@firebase/auth/dist/index.rn.d.ts"]
+    },
     "types": ["react", "react-native", "expo-router"],
     "strict": true,
     "skipLibCheck": true
