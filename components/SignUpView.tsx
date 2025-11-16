@@ -1,7 +1,6 @@
 // views/SignUpView.tsx
 import React from "react";
 import {
-  SafeAreaView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -9,6 +8,7 @@ import {
 } from "react-native";
 import { Router } from "expo-router";
 import { SignUpLogic } from "../components/logics/useSignUpLogic";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface SignUpViewProps extends SignUpLogic {
   router: Router;

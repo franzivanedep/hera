@@ -28,7 +28,8 @@ export default function LegalPage() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: UI.bg }}>
-      <View style={{ padding: 16, gap: 12 }}>
+  <View style={{ flex: 1, padding: 16, gap: 12 }}>
+
         <View>
           <Text style={{ fontSize: 22, fontWeight: "800", color: UI.text }}>Legal</Text>
           <Text style={{ color: UI.sub, marginTop: 4 }}>Terms of Service and Privacy Policy</Text>

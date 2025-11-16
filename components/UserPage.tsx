@@ -18,6 +18,13 @@ import styles from "../components/styles/UserPageStyles";
 
 const { width } = Dimensions.get("window");
 
+// ---------------------------------------------------------
+// ❌ Add which labels you want to disable here
+// Example: ["Settings", "Help", "Legal", "App Tour"]
+// ---------------------------------------------------------
+const disabledButtons = ["Redemptions", "Other Activities", "Expired Points", "Redeem a Voucher"];
+// ---------------------------------------------------------
+
 interface MenuItem {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
@@ -81,6 +88,9 @@ const UserPage: React.FC = () => {
       },
     ]);
 
+  // -----------------------------
+  // Modified Section Renderer
+  // -----------------------------
   const renderSection = (title: string, items: MenuItem[]) => (
     <View style={{ marginBottom: 24 }}>
       <Text
@@ -91,35 +101,42 @@ const UserPage: React.FC = () => {
       >
         {title}
       </Text>
+
       <View style={styles.iconGrid}>
-        {items.map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[
-              styles.iconItem,
-              width > 800 && { width: "20%", marginVertical: 14 },
-            ]}
-            activeOpacity={0.7}
-            onPress={() => {
-              const key = routeMap[item.label];
-              if (key) go(key);
-            }}
-          >
-            <Ionicons
-              name={item.icon}
-              size={width > 800 ? 40 : 28}
-              color="#3A2E23"
-            />
-            <Text
+        {items.map((item, index) => {
+          const isDisabled = disabledButtons.includes(item.label);
+
+          return (
+            <TouchableOpacity
+              key={index}
               style={[
-                styles.iconLabel,
-                width > 800 && { fontSize: 15 },
+                styles.iconItem,
+                width > 800 && { width: "20%", marginVertical: 14 },
+                isDisabled && { opacity: 0.4 },
               ]}
+              activeOpacity={isDisabled ? 1 : 0.7}
+              onPress={() => {
+                if (isDisabled) return; // Prevent press
+                const key = routeMap[item.label];
+                if (key) go(key);
+              }}
             >
-              {item.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Ionicons
+                name={item.icon}
+                size={width > 800 ? 40 : 28}
+                color="#3A2E23"
+              />
+              <Text
+                style={[
+                  styles.iconLabel,
+                  width > 800 && { fontSize: 15 },
+                ]}
+              >
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </View>
   );
@@ -142,11 +159,7 @@ const UserPage: React.FC = () => {
         <View
           style={[
             styles.avatarCircle,
-            width > 800 && {
-              width: 100,
-              height: 100,
-              borderRadius: 50,
-            },
+            width > 800 && { width: 100, height: 100, borderRadius: 50 },
           ]}
         >
           <Ionicons
@@ -155,6 +168,7 @@ const UserPage: React.FC = () => {
             color="#3A2E23"
           />
         </View>
+
         <View style={{ marginLeft: 16 }}>
           <Text
             style={[

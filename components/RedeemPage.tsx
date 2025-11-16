@@ -93,24 +93,46 @@ const handleReferralSubmit = async () => {
         </View>
 
         {/* ===== ACTION GRID ===== */}
+        {/* ===== ACTION GRID ===== */}
         <View style={styles.actionContainer}>
           <View style={styles.actionGrid}>
-            {actions.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.actionButton}
-                onPress={() => {
-                  if (item.route) router.push(item.route);
-                }}
-              >
-                <View style={styles.iconWrapper}>
-                  <Ionicons name={item.icon as any} size={28} color="#9E7E63" />
-                </View>
-                <Text style={styles.actionText}>{item.text}</Text>
-              </TouchableOpacity>
-            ))}
+            {actions.map((item, index) => {
+              const isDisabled =
+                item.text === "Survey" || item.text === "Scan QR Code";
+
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.actionButton,
+                    isDisabled && { opacity: 0.9 }, // visual disabled
+                  ]}
+                  disabled={isDisabled} // ← disable press
+                  onPress={() => {
+                    if (!isDisabled && item.route) router.push(item.route);
+                  }}
+                >
+                  <View style={styles.iconWrapper}>
+                    <Ionicons
+                      name={item.icon as any}
+                      size={28}
+                      color={isDisabled ? "#C7C7C7" : "#9E7E63"}
+                    />
+                  </View>
+                  <Text
+                    style={[
+                      styles.actionText,
+                      isDisabled && { color: "#C7C7C7" },
+                    ]}
+                  >
+                    {item.text}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
+
 
        
 
