@@ -113,13 +113,18 @@ const LoginView: React.FC<LoginViewProps> = ({
 
             <Text style={styles.orText}>or</Text>
 
-            <TouchableOpacity
-              style={styles.googleButton}
-              onPress={promptAsync}
-              disabled={!request || busy}
-            >
-              <Text style={styles.googleText}>Continue with Google</Text>
-            </TouchableOpacity>
+          <TouchableOpacity
+  style={styles.googleButton}
+  onPress={async () => {
+    console.log("Button pressed, calling promptAsync...");
+    const result = await promptAsync();
+    console.log("promptAsync result:", result);
+  }}
+  disabled={!request || busy}
+>
+  <Text style={styles.googleText}>Continue with Google</Text>
+</TouchableOpacity>
+
 
             <Text style={styles.signupRow}>
               Don’t have an account?{" "}

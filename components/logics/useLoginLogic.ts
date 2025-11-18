@@ -14,66 +14,91 @@ import { auth } from "@/lib/firebase";
 
 WebBrowser.maybeCompleteAuthSession();
 
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+
 export default function useLoginLogic() {
   const router = useRouter();
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [busy, setBusy] = useState<boolean>(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [pwVisible, setPwVisible] = useState<boolean>(false);
+  const [pwVisible, setPwVisible] = useState(false);
 
   const canSubmit = email.trim().length > 3 && password.length >= 6 && !busy;
 
+  // --- GOOGLE AUTH REQUEST ---
   const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com",
-    androidClientId: "YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com",
-    iosClientId: "YOUR_IOS_CLIENT_ID.apps.googleusercontent.com",
-    webClientId: "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com",
+    androidClientId:
+      process.env.EXPO_PUBLIC_FIREBASE_ANDROID_CLIENT_ID, // Firebase Android OAuth
     redirectUri: makeRedirectUri({ scheme: "heraapp" }),
   });
 
-  useEffect(() => {
-    const signInWithGoogle = async () => {
-      if (response?.type === "success") {
-        const { id_token, access_token } = response.params;
 
-        if (!id_token) {
-          setErr("Google login failed: no ID token received.");
-          return;
-        }
+ // --- HANDLE GOOGLE SIGN-IN ---
+useEffect(() => {
+  const signInWithGoogle = async () => {
+    console.log("Google response changed:", response); // Debug response
+    if (response?.type !== "success") {
+      if (response) console.log("Google login not successful:", response.type);
+      return;
+    }
 
-        const credential = GoogleAuthProvider.credential(
-          id_token,
-          access_token ?? undefined
-        );
+    const { id_token, access_token } = response.params;
+    console.log("Google tokens received:", { id_token, access_token });
 
-        try {
-          const result = await signInWithCredential(auth, credential);
+    if (!id_token) {
+      console.error("Google login failed: No ID token received.");
+      setErr("Google login failed: No ID token received.");
+      return;
+    }
 
-          // ✅ Save UID in AsyncStorage (professional)
-          await AsyncStorage.setItem("uid", result.user.uid);
+    const credential = GoogleAuthProvider.credential(id_token, access_token ?? undefined);
 
-          router.replace("/(tabs)");
-        } catch (e: any) {
-          setErr(normalize(e));
-        }
+    try {
+      const result = await signInWithCredential(auth, credential);
+      console.log("Firebase user credential:", result.user);
+
+      const gmail = result.user.email;
+      const uid = result.user.uid;
+      console.log("User info:", { gmail, uid });
+
+      // --- Post user to backend ---
+      try {
+        const res = await fetch(`${BASE_URL}/users/newUser`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ gmail, uid }),
+        });
+        console.log("Backend response:", res.status, await res.text());
+      } catch (apiErr) {
+        console.warn("Failed posting to /users/newUser:", apiErr);
       }
-    };
 
-    signInWithGoogle();
-  }, [response, router]);
-
-  const normalize = (e: any): string => {
-    const m = String(e?.message ?? e ?? "");
-    if (m.includes("auth/invalid-email")) return "Invalid email address.";
-    if (m.includes("auth/user-not-found")) return "No account found for this email.";
-    if (m.includes("auth/wrong-password") || m.includes("auth/invalid-credential"))
-      return "Wrong email or password.";
-    if (m.includes("auth/too-many-requests")) return "Too many attempts. Try again later.";
-    if (m.includes("auth/popup-closed-by-user")) return "Sign-in cancelled.";
-    return m.replace(/^Firebase:\s*/, "").trim();
+      await AsyncStorage.setItem("uid", uid);
+      router.replace("/(tabs)");
+    } catch (firebaseErr: any) {
+      console.error("Firebase login error:", firebaseErr);
+      setErr(firebaseErr.message || "Google login failed.");
+    }
   };
 
+  signInWithGoogle();
+}, [response]);
+
+
+  // --- NORMALIZE ERRORS ---
+  const normalize = (e: any): string => {
+    const msg = String(e?.message ?? e ?? "");
+    if (msg.includes("auth/invalid-email")) return "Invalid email address.";
+    if (msg.includes("auth/user-not-found")) return "No account found for this email.";
+    if (msg.includes("auth/wrong-password") || msg.includes("auth/invalid-credential"))
+      return "Wrong email or password.";
+    if (msg.includes("auth/too-many-requests")) return "Too many attempts. Try again later.";
+    if (msg.includes("auth/popup-closed-by-user")) return "Sign-in cancelled.";
+    return msg.replace(/^Firebase:\s*/, "").trim();
+  };
+
+  // --- EMAIL/PASSWORD LOGIN ---
   const handleLogin = async () => {
     if (!canSubmit) return;
     setBusy(true);
@@ -81,10 +106,7 @@ export default function useLoginLogic() {
 
     try {
       const result = await signInWithEmailAndPassword(auth, email.trim(), password);
-
-      // ✅ Save UID in AsyncStorage (professional)
       await AsyncStorage.setItem("uid", result.user.uid);
-
       router.replace("/(tabs)");
     } catch (e: any) {
       setErr(normalize(e));
@@ -93,9 +115,10 @@ export default function useLoginLogic() {
     }
   };
 
+  // --- FORGOT PASSWORD ---
   const handleForgotPassword = async () => {
     if (!email.trim()) {
-      setErr("Enter your email first to receive a reset link.");
+      setErr("Enter your email first.");
       return;
     }
 

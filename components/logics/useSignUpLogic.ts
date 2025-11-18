@@ -1,9 +1,8 @@
 // hooks/useSignUpLogic.ts
 import { useState, useEffect } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { collection, query, where, getDocs } from "firebase/firestore";
 import { Router } from "expo-router";
 
 export interface SignUpLogic {
@@ -47,9 +46,18 @@ export function useSignUpLogic(BASE_URL: string): SignUpLogic {
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   async function emailExists(email: string): Promise<boolean> {
-    const q = query(collection(db, "users"), where("gmail", "==", email));
-    const snapshot = await getDocs(q);
-    return !snapshot.empty;
+    const res = await fetch(`${BASE_URL}/users/check-gmail`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gmail: email }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to check email existence.");
+    }
+
+    const data = await res.json();
+    return data.exists;
   }
 
   async function sendCode(): Promise<void> {
