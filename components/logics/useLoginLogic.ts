@@ -11,10 +11,11 @@ import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 import { makeRedirectUri } from "expo-auth-session";
 import { auth } from "@/lib/firebase";
+import { API_URL, FIREBASE_ANDROID_CLIENT_ID } from '../../config';
 
 WebBrowser.maybeCompleteAuthSession();
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+const BASE_URL = API_URL;
 
 export default function useLoginLogic() {
   const router = useRouter();
@@ -28,63 +29,48 @@ export default function useLoginLogic() {
 
   // --- GOOGLE AUTH REQUEST ---
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId:
-      process.env.EXPO_PUBLIC_FIREBASE_ANDROID_CLIENT_ID, // Firebase Android OAuth
+    androidClientId: FIREBASE_ANDROID_CLIENT_ID,
     redirectUri: makeRedirectUri({ scheme: "heraapp" }),
   });
 
+  // --- HANDLE GOOGLE SIGN-IN ---
+  useEffect(() => {
+    const signInWithGoogle = async () => {
+      if (response?.type !== "success") return;
 
- // --- HANDLE GOOGLE SIGN-IN ---
-useEffect(() => {
-  const signInWithGoogle = async () => {
-    console.log("Google response changed:", response); // Debug response
-    if (response?.type !== "success") {
-      if (response) console.log("Google login not successful:", response.type);
-      return;
-    }
-
-    const { id_token, access_token } = response.params;
-    console.log("Google tokens received:", { id_token, access_token });
-
-    if (!id_token) {
-      console.error("Google login failed: No ID token received.");
-      setErr("Google login failed: No ID token received.");
-      return;
-    }
-
-    const credential = GoogleAuthProvider.credential(id_token, access_token ?? undefined);
-
-    try {
-      const result = await signInWithCredential(auth, credential);
-      console.log("Firebase user credential:", result.user);
-
-      const gmail = result.user.email;
-      const uid = result.user.uid;
-      console.log("User info:", { gmail, uid });
-
-      // --- Post user to backend ---
-      try {
-        const res = await fetch(`${BASE_URL}/users/newUser`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ gmail, uid }),
-        });
-        console.log("Backend response:", res.status, await res.text());
-      } catch (apiErr) {
-        console.warn("Failed posting to /users/newUser:", apiErr);
+      const { id_token, access_token } = response.params;
+      if (!id_token) {
+        setErr("Google login failed. Please try again.");
+        return;
       }
 
-      await AsyncStorage.setItem("uid", uid);
-      router.replace("/(tabs)");
-    } catch (firebaseErr: any) {
-      console.error("Firebase login error:", firebaseErr);
-      setErr(firebaseErr.message || "Google login failed.");
-    }
-  };
+      const credential = GoogleAuthProvider.credential(id_token, access_token ?? undefined);
 
-  signInWithGoogle();
-}, [response]);
+      try {
+        const result = await signInWithCredential(auth, credential);
+        const gmail = result.user.email;
+        const uid = result.user.uid;
 
+        // Post user to backend
+        try {
+          await fetch(`${BASE_URL}/users/newUser`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ gmail, uid }),
+          });
+        } catch {
+          // silently fail in production
+        }
+
+        await AsyncStorage.setItem("uid", uid);
+        router.replace("/(tabs)");
+      } catch {
+        setErr("Google login failed. Please try again.");
+      }
+    };
+
+    signInWithGoogle();
+  }, [response]);
 
   // --- NORMALIZE ERRORS ---
   const normalize = (e: any): string => {
@@ -95,7 +81,7 @@ useEffect(() => {
       return "Wrong email or password.";
     if (msg.includes("auth/too-many-requests")) return "Too many attempts. Try again later.";
     if (msg.includes("auth/popup-closed-by-user")) return "Sign-in cancelled.";
-    return msg.replace(/^Firebase:\s*/, "").trim();
+    return "An unexpected error occurred. Please try again.";
   };
 
   // --- EMAIL/PASSWORD LOGIN ---

@@ -6,8 +6,7 @@ import SignUpView from "../../components/SignUpView";
 
 export default function SignUpController() {
   const router = useRouter();
-  const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "";
-  const logic = useSignUpLogic(BASE_URL);
+  const logic = useSignUpLogic(); // ✅ no arguments needed
 
   return <SignUpView {...logic} router={router} />;
 }

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { API_URL } from '../../config';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+const BASE_URL = API_URL;
 
 export function useMaintenanceStatus() {
   const [isMaintenance, setIsMaintenance] = useState<boolean | null>(null);

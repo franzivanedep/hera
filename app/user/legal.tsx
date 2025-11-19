@@ -28,13 +28,15 @@ export default function LegalPage() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: UI.bg }}>
-  <View style={{ flex: 1, padding: 16, gap: 12 }}>
+      <View style={{ flex: 1, padding: 16, gap: 12 }}>
 
+        {/* Header */}
         <View>
           <Text style={{ fontSize: 22, fontWeight: "800", color: UI.text }}>Legal</Text>
           <Text style={{ color: UI.sub, marginTop: 4 }}>Terms of Service and Privacy Policy</Text>
         </View>
 
+        {/* Tabs */}
         <View style={{ flexDirection: "row", gap: 8 }}>
           <Pressable
             onPress={() => setTab("terms")}
@@ -72,6 +74,7 @@ export default function LegalPage() {
           </Pressable>
         </View>
 
+        {/* Content */}
         <View
           style={{
             flex: 1,
@@ -92,46 +95,46 @@ export default function LegalPage() {
                   You must be of legal age to use the service in your jurisdiction.
                 </Section>
                 <Section title="3. Accounts">
-                  You are responsible for maintaining the confidentiality of your credentials and for all activities under your account.
+                  You are responsible for maintaining the confidentiality of your account and credentials.
                 </Section>
-                <Section title="4. Rewards and Vouchers">
-                  Rewards, points, and vouchers have conditions and may expire. The app may modify or discontinue programs at any time.
+                <Section title="4. User Data">
+                  We only collect your Gmail for verification and a unique ID for each user. Data is stored securely using Firebase.
                 </Section>
                 <Section title="5. Acceptable Use">
                   Do not misuse the service, probe, or disrupt systems. We may suspend access for violations.
                 </Section>
                 <Section title="6. Liability">
-                  The service is provided “as is” without warranties. To the fullest extent permitted by law, liability is limited.
+                  The service is provided “as is” without warranties. Liability is limited to the fullest extent permitted by law.
                 </Section>
                 <Section title="7. Changes">
                   We may update these Terms. Continued use after changes means you accept the updated Terms.
                 </Section>
                 <Section title="8. Contact">
-                  For questions, see Help & Support or email support@example.com.
+                  For questions, email support@example.com.
                 </Section>
               </>
             ) : (
               <>
                 <Section title="1. Information We Collect">
-                  We collect account details you provide and app usage data necessary to operate features like transactions and redemptions.
+                  We only collect your Gmail for verification and a unique ID for each user. This data is stored using Firebase.
                 </Section>
                 <Section title="2. How We Use Data">
-                  To provide the service, improve features, prevent fraud, and communicate important updates.
+                  Data is used to provide the service, verify users, and manage accounts.
                 </Section>
                 <Section title="3. Sharing">
-                  We do not sell personal data. We may share with service providers under contract or when required by law.
+                  We do not sell or share personal data outside of Firebase infrastructure except when required by law.
                 </Section>
                 <Section title="4. Security">
-                  We use reasonable safeguards to protect your data but no method is 100% secure.
+                  We use Firebase security features and reasonable safeguards to protect your data.
                 </Section>
                 <Section title="5. Your Choices">
-                  You can update info in Settings, control notifications, and request deletion subject to legal obligations.
+                  You can request deletion of your account, which will remove your Gmail and unique ID from our system.
                 </Section>
                 <Section title="6. Data Retention">
-                  We retain data only as long as needed for the purposes stated or as required by law.
+                  We retain user data only as long as necessary for verification and account purposes.
                 </Section>
                 <Section title="7. Children">
-                  The service is not directed to children where prohibited by law.
+                  The service is not intended for children where prohibited by law.
                 </Section>
                 <Section title="8. Changes">
                   We may update this Policy. Material changes will be reflected here.
@@ -149,4 +152,3 @@ export default function LegalPage() {
     </SafeAreaView>
   );
 }
-

@@ -12,8 +12,7 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "hera.com",  
-
+      "package": "hera.com",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -21,7 +20,9 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+      ]
     },
     "web": {
       "output": "static",
@@ -41,13 +42,18 @@
           }
         }
       ],
-      "expo-barcode-scanner",
       "expo-font",
       "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b7340c82-6470-42d1-9939-676e18c4cded"
+      }
     }
   }
 }

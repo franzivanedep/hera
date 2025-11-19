@@ -5,6 +5,7 @@ import { auth } from "@/lib/firebase";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { API_URL } from '../../config';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -16,7 +17,7 @@ export type Tx = {
   image?: string;
 };
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+const BASE_URL = API_URL ;
 if (!BASE_URL) throw new Error("EXPO_PUBLIC_API_URL is not defined!");
 
 const formatCreatedAt = (createdAt?: string) => {

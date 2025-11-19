@@ -2,6 +2,7 @@
 import useSWR from "swr";
 import axios, { isAxiosError } from "axios";
 import { useEffect, useRef } from "react";
+import { API_URL } from '../../config';
 
 export interface Reward {
   id: string;
@@ -13,6 +14,7 @@ export interface Reward {
   is_active: boolean;
 }
 
+// --- fetcher using BASE_URL ---
 const fetcher = async (url: string) => {
   try {
     const res = await axios.get(url);
@@ -29,12 +31,13 @@ const fetcher = async (url: string) => {
 };
 
 export default function useRewardsLogic() {
-  const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/rewards`;
+  const BASE_URL = `${API_URL}/rewards`; // ✅ use API_URL from config
 
   // store previous rewards to compare
   const prevRewardsRef = useRef<Reward[]>([]);
 
-  const { data, error, mutate } = useSWR(API_URL, fetcher, {
+  // --- SWR ---
+  const { data, error, mutate } = useSWR(BASE_URL, fetcher, {
     refreshInterval: 5 * 60 * 1000, // automatic update every 5 min
     revalidateOnFocus: false,       // no auto-refresh when switching tabs
     dedupingInterval: 5 * 60 * 1000, // deduplicate multiple requests in 5 min
@@ -53,6 +56,7 @@ export default function useRewardsLogic() {
     }
   }, [data]);
 
+  // --- map rewards and fix image URLs ---
   const rewards: Reward[] = Array.isArray(data)
     ? data
         .filter(r => r.is_active)
@@ -60,9 +64,7 @@ export default function useRewardsLogic() {
           ...r,
           image_url: r.image_url.startsWith("http")
             ? r.image_url
-            : `${process.env.EXPO_PUBLIC_API_URL}${
-                r.image_url.startsWith("/") ? "" : "/"
-              }${r.image_url}`,
+            : `${API_URL}${r.image_url.startsWith("/") ? "" : "/"}${r.image_url}`, // ✅ replaced process.env with API_URL
         }))
     : [];
 

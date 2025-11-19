@@ -6,8 +6,9 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import axios from "axios";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { API_URL } from '../../config';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3001";
+const BASE_URL = API_URL;
 
 interface VoucherData {
   merchant: string;

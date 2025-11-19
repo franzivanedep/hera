@@ -4,6 +4,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Router } from "expo-router";
+import { API_URL } from "../../config"; // ✅ import from config
 
 export interface SignUpLogic {
   email: string;
@@ -22,7 +23,7 @@ export interface SignUpLogic {
   verifyAndSignUp: (router: Router) => Promise<void>;
 }
 
-export function useSignUpLogic(BASE_URL: string): SignUpLogic {
+export function useSignUpLogic(): SignUpLogic {
   const [email, setEmail] = useState<string>("");
   const [pw, setPw] = useState<string>("");
   const [code, setCode] = useState<string>("");
@@ -46,16 +47,13 @@ export function useSignUpLogic(BASE_URL: string): SignUpLogic {
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   async function emailExists(email: string): Promise<boolean> {
-    const res = await fetch(`${BASE_URL}/users/check-gmail`, {
+    const res = await fetch(`${API_URL}/users/check-gmail`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ gmail: email }),
     });
 
-    if (!res.ok) {
-      throw new Error("Failed to check email existence.");
-    }
-
+    if (!res.ok) throw new Error("Failed to check email existence.");
     const data = await res.json();
     return data.exists;
   }
@@ -72,9 +70,11 @@ export function useSignUpLogic(BASE_URL: string): SignUpLogic {
       const exists = await emailExists(email.trim());
       if (exists) throw new Error("This email is already registered.");
       if (sendCount >= MAX_SENDS)
-        throw new Error("Too many attempts. Please wait before trying again.");
+        throw new Error(
+          "Too many attempts. Please wait before trying again."
+        );
 
-      const res = await fetch(`${BASE_URL}/email/send`, {
+      const res = await fetch(`${API_URL}/email/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ gmail: email.trim() }),
@@ -99,7 +99,7 @@ export function useSignUpLogic(BASE_URL: string): SignUpLogic {
     setErr(null);
 
     try {
-      const res = await fetch(`${BASE_URL}/email/verify`, {
+      const res = await fetch(`${API_URL}/email/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ gmail: email.trim(), code }),
@@ -117,14 +117,13 @@ export function useSignUpLogic(BASE_URL: string): SignUpLogic {
 
       await AsyncStorage.setItem("uid", uid);
 
-      const backendRes = await fetch(`${BASE_URL}/users/newUser`, {
+      const backendRes = await fetch(`${API_URL}/users/newUser`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ gmail: email.trim(), uid }),
       });
 
-      if (!backendRes.ok)
-        throw new Error("Failed to save user in backend");
+      if (!backendRes.ok) throw new Error("Failed to save user in backend");
 
       router.replace("/");
     } catch (e: any) {

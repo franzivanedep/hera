@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_URL } from '../../config';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3001";
+const BASE_URL = API_URL  ;
 
 interface UserDoc {
   id: string;

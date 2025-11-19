@@ -1,8 +1,9 @@
 import axios from "axios";
 import { useApiError } from "../context/ApiErrorProvider";
+import { API_URL } from '../config';
 
 const api = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL,
+  baseURL: API_URL,
   timeout: 10000,
 });
 

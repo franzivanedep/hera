@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { auth, db } from "@/lib/firebase";
+import { API_URL } from '../../config';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -22,7 +23,7 @@ export type ActionItem = {
   route: "/referrals" | null;
 };
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+const BASE_URL = API_URL;
 
 export default function useRewardsPageLogic() {
   const [userName, setUserName] = useState<string>("Guest");

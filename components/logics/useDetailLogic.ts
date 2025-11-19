@@ -3,8 +3,9 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { onAuthStateChanged } from "firebase/auth";
 import axios from "axios";
 import { auth } from "@/lib/firebase";
+import { API_URL } from '../../config';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+const BASE_URL = API_URL ;
 
 export default function useRewardDetailLogic() {
   const params = useLocalSearchParams();
