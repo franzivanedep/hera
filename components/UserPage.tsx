@@ -228,7 +228,7 @@ const UserPage: React.FC = () => {
             width > 800 && { fontSize: 14 },
           ]}
         >
-          Software version V1.3.1(658)
+          Software version V1.1.1(1)
         </Text>
       </View>
     </ScrollView>
