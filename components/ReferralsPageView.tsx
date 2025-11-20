@@ -85,27 +85,8 @@ export const ReferralsPageView: React.FC<ReferralsPageViewProps> = ({
         </Text>
       </View>
 
-      {/* Share Buttons */}
-      <View style={styles.shareRow}>
-        {[
-          { label: "Facebook", icon: "share-social-outline" },
-          { label: "Contacts", icon: "heart-outline" },
-          { label: "Link", icon: "link-outline" },
-          { label: "More", icon: "sparkles-outline" },
-        ].map((btn, i) => (
-          <View key={i} style={styles.shareButtonWrapper}>
-            <TouchableOpacity style={styles.shareButton}>
-              <Ionicons name={btn.icon as any} size={20} color="#fff" />
-            </TouchableOpacity>
-            <Text style={styles.shareLabel}>{btn.label}</Text>
-          </View>
-        ))}
-      </View>
 
-      <Text style={styles.footerText}>
-        Rewards will be credited after your friend’s first completed
-        appointment. Terms apply.
-      </Text>
+
     </ScrollView>
   );
 };
