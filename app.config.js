@@ -1,22 +1,17 @@
 import 'dotenv/config';
 
 export default ({ config }) => ({
-  ...config,
   expo: {
-    ...config.expo,
-    name: "hera Lounge & Spa",       
+    name: "HeraLoungeSpa",
     slug: "heraapp",
     owner: "franzthegreat",
-    scheme: "heraapp",               
+    scheme: "heraapp",
     version: "1.0.0",
-    icon: "./assets/images/logo.png", 
+    orientation: "portrait",
+    icon: "./assets/images/app-icon.png",
     userInterfaceStyle: "automatic",
+
     extra: {
-      ...config.expo?.extra,
-      eas: {
-        projectId: "b7340c82-6470-42d1-9939-676e18c4cded",
-        ...(config.expo?.extra?.eas || {}),
-      },
       API_URL: process.env.EXPO_PUBLIC_API_URL,
       FIREBASE_API_KEY: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
       FIREBASE_AUTH_DOMAIN: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -25,26 +20,48 @@ export default ({ config }) => ({
       FIREBASE_MESSAGING_SENDER_ID: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
       FIREBASE_APP_ID: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
       FIREBASE_ANDROID_CLIENT_ID: process.env.EXPO_PUBLIC_FIREBASE_ANDROID_CLIENT_ID,
+      eas: {
+        projectId: "b7340c82-6470-42d1-9939-676e18c4cded",
+      },
     },
+
     ios: {
       supportsTablet: true,
-      icon: "./assets/images/logo.png", // Optional: iOS specific icon
     },
+
     android: {
-      package: "hera.com",
+      package: "com.hera.app",   
       adaptiveIcon: {
-        foregroundImage: "./assets/images/android-icon-foreground.png",
+        foregroundImage: "./assets/images/app-icon.png",
         backgroundImage: "./assets/images/android-icon-background.png",
         backgroundColor: "#E6F4FE",
-        monochromeImage: "./assets/images/android-icon-monochrome.png",
       },
-      edgeToEdgeEnabled: true,
-      predictiveBackGestureEnabled: false,
       permissions: [],
     },
+
+    plugins: [
+      [
+        "expo-splash-screen",
+        {
+          image: "./assets/images/splash-icon.png",
+          imageWidth: 200,
+          resizeMode: "contain",
+          backgroundColor: "#ffffff",
+        }
+      ],
+      "expo-router",
+      "expo-font",
+      "expo-web-browser",
+    ],
+
     web: {
       output: "static",
-      favicon: "./assets/images/favicon.png",
+      favicon: "./assets/images/logo.png",
     },
-  },
+
+    experiments: {
+      typedRoutes: true,
+      reactCompiler: true
+    }
+  }
 });

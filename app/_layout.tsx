@@ -8,11 +8,11 @@ import MaintenancePage from "../app/maintenance";
 import { ActivityIndicator, View, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// 🧩 Import Network context + banner
+// 🧩 Network
 import { NetworkProvider } from "../context/NetworkProvider";
-import OfflineBanner from "../components/offlineBanner";
+import OfflineModal from "../components/offlineBanner"; 
 
-// 🧩 Import API error context + banner
+// 🧩 API Error
 import { ApiErrorProvider } from "../context/ApiErrorProvider";
 import ApiErrorBanner from "../components/ApiErrorBanner";
 
@@ -38,7 +38,9 @@ function Guard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (loading) return;
+
     const inAuth = segments[0] === "(auth)";
+
     if (!user && !inAuth) router.replace("/(auth)/login");
     if (user && inAuth) router.replace("/(tabs)");
   }, [user, loading, segments, router]);
@@ -49,7 +51,6 @@ function Guard({ children }: { children: React.ReactNode }) {
 export default function RootLayout() {
   const { isMaintenance, loading } = useMaintenanceStatus();
 
-  // Show loading spinner while checking maintenance
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -58,21 +59,21 @@ export default function RootLayout() {
     );
   }
 
-  // If maintenance mode is ON → show Maintenance Page
   if (isMaintenance) {
     return <MaintenancePage />;
   }
 
-  // Otherwise, show normal app
   return (
     <ThemeProvider value={BeigeTheme}>
       <AuthProvider>
         <ApiErrorProvider>
           <NetworkProvider>
             <SafeAreaView style={styles.safeArea}>
-              {/* 🔴 Offline banner floating at top */}
-              <OfflineBanner />
-              {/* 🔴 API error banner floating at top */}
+
+              {/* 🔴 Offline Modal */}
+              <OfflineModal />
+
+              {/* 🔴 API error banner */}
               <ApiErrorBanner />
 
               {/* Main content */}
