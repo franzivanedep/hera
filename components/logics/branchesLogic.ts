@@ -1,54 +1,72 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Linking } from "react-native";
 import axios from "axios";
 import { API_URL } from "../../config";
-
-// Use your local IP for development
 
 export interface Branch {
   id: string;
   name: string;
   address: string;
-  image?: string; // URL from backend
+  image?: string;
   services?: string[];
   openingHours?: string[];
   contact?: { phone: string; email: string };
 }
 
-export const useBranches = () => {
+export const useBranches = (pollInterval = 60000) => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch branches from backend
-  const fetchBranches = async () => {
-    setLoading(true);
+  const lastFetchedRef = useRef<number>(0);
+  const inProgressRef = useRef<boolean>(false); // prevent overlapping fetches
+
+  const normalizeImage = useCallback((branch: Branch) => {
+    return {
+      ...branch,
+      image: branch.image
+        ? branch.image.startsWith("http")
+          ? branch.image
+          : `${API_URL}${branch.image.startsWith("/") ? "" : "/"}${branch.image}`
+        : undefined,
+    };
+  }, []);
+
+  const fetchBranches = useCallback(async (force = false) => {
+    const now = Date.now();
+    if (!force && now - lastFetchedRef.current < pollInterval) return; // skip if too soon
+    if (inProgressRef.current) return; // skip if fetch already in progress
+
+    inProgressRef.current = true;
     try {
-      const res = await axios.get<Branch[]>(`${API_URL}/branches`);
+      // Only show loading on first fetch or forced fetch
+      if (branches.length === 0 || force) setLoading(true);
 
-      // Normalize image URLs for React Native
-      const normalizedBranches = res.data.map(branch => ({
-        ...branch,
-        image: branch.image
-          ? branch.image.startsWith("http")
-            ? branch.image.replace("localhost:3001", "192.168.100.19:3001")
-            : `${API_URL}${branch.image.startsWith("/") ? "" : "/"}${branch.image}`
-          : undefined,
-      }));
+      const res = await axios.get<Branch[]>(`${API_URL}/branches/get`);
+      const normalizedBranches = res.data.map(normalizeImage);
 
-      setBranches(normalizedBranches);
+      // Only update state if branches changed
+      const hasNew = normalizedBranches.length !== branches.length ||
+        normalizedBranches.some((b, i) => b.id !== branches[i]?.id);
+
+      if (hasNew) setBranches(normalizedBranches);
+
+      lastFetchedRef.current = now;
     } catch (err: any) {
       console.error("Failed to fetch branches:", err);
       setError(err.message || "Something went wrong");
     } finally {
+      inProgressRef.current = false;
       setLoading(false);
     }
-  };
+  }, [branches, normalizeImage, pollInterval]);
 
   useEffect(() => {
-    fetchBranches();
-  }, []);
+    fetchBranches(true); // initial fetch
+    const interval = setInterval(() => fetchBranches(), pollInterval);
+    return () => clearInterval(interval);
+  }, [fetchBranches, pollInterval]);
 
   const openBranchModal = (branch: Branch) => setSelectedBranch(branch);
   const closeBranchModal = () => setSelectedBranch(null);
@@ -66,6 +84,6 @@ export const useBranches = () => {
     openBranchModal,
     closeBranchModal,
     openMap,
-    fetchBranches, // optional to refresh manually
+    fetchBranches,
   };
 };
