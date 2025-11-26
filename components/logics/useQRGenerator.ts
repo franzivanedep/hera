@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_URL } from '../../config';
+import { API_URL } from "../../config";
+import { useApiError } from "@/context/ApiErrorProvider"; 
 
-const BASE_URL = API_URL  ;
+const BASE_URL = API_URL;
 
 interface UserDoc {
   id: string;
@@ -14,6 +15,7 @@ export default function useQRGeneratorLogic(
   qrType: "attendance" | "rewards" = "attendance",
   initialPollInterval = 10000 // start with 10s
 ) {
+  const { setError } = useApiError(); // ✅ get setError
   const [userDoc, setUserDoc] = useState<UserDoc | null>(null);
   const [qrId, setQrId] = useState<string | null>(null);
   const [qrUsed, setQrUsed] = useState<boolean>(false);
@@ -31,19 +33,22 @@ export default function useQRGeneratorLogic(
         if (!uid) {
           setMessage("No logged-in user found.");
           setShowRefresh(true);
+          setError("No logged-in user found."); // ✅ global error
           return;
         }
         setUserDoc({ id: uid });
         setMessage("User loaded successfully.");
         setShowRefresh(false);
+        setError(null); // ✅ clear previous errors
       } catch (err: any) {
         console.error("Error loading UID:", err);
         setMessage("Failed to load user UID.");
         setShowRefresh(true);
+        setError("Failed to load user UID."); // ✅ global error
       }
     };
     loadUser();
-  }, []);
+  }, [setError]);
 
   // ---------------- Smart QR polling ----------------
   useEffect(() => {
@@ -60,14 +65,13 @@ export default function useQRGeneratorLogic(
           setQrUsed(false);
           setMessage(`Active ${qrType} QR found.`);
           setShowRefresh(false);
+          setError(null); // ✅ clear errors
 
-          // ✅ Stop polling if QR is valid
           if (intervalRef.current) {
             clearInterval(intervalRef.current);
             intervalRef.current = null;
           }
         } else {
-          // Create new QR if none exists
           setMessage(`No active ${qrType} QR found. Creating one...`);
           const newQrRes = await axios.post(`${BASE_URL}/points/createQR`, {
             uid: userDoc.id,
@@ -77,6 +81,7 @@ export default function useQRGeneratorLogic(
           setQrUsed(false);
           setMessage(`New ${qrType} QR created successfully.`);
           setShowRefresh(false);
+          setError(null); // ✅ clear errors
         }
       } catch (err: any) {
         console.error("QR fetch/create error:", err);
@@ -85,15 +90,19 @@ export default function useQRGeneratorLogic(
         setMessage(`Failed to retrieve or create ${qrType} QR.`);
         setShowRefresh(true);
 
-        // Adaptive polling: increase interval on error
-        pollIntervalRef.current = Math.min(pollIntervalRef.current * 2, 60000); // max 1 min
+        // ✅ send to global banner
+        if (axios.isAxiosError(err) && err.response?.status === 500) {
+          setError("Server error (500). Please try again later.");
+        } else {
+          setError("Failed to fetch or create QR.");
+        }
+
+        pollIntervalRef.current = Math.min(pollIntervalRef.current * 2, 60000);
       }
     };
 
-    // Initial check
     checkOrCreateQR();
 
-    // Poll only if QR is missing or used
     if (!qrId || qrUsed) {
       if (intervalRef.current) clearInterval(intervalRef.current);
       intervalRef.current = setInterval(checkOrCreateQR, pollIntervalRef.current);
@@ -102,7 +111,7 @@ export default function useQRGeneratorLogic(
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [userDoc, qrType, qrId, qrUsed]);
+  }, [userDoc, qrType, qrId, qrUsed, setError]);
 
   // ---------------- Manual Regenerate ----------------
   const regenerateQR = useCallback(async () => {
@@ -118,15 +127,21 @@ export default function useQRGeneratorLogic(
       setQrUsed(false);
       setMessage(`${qrType} QR regenerated successfully.`);
       setShowRefresh(false);
-
-      // Reset polling interval
+      setError(null); // ✅ clear errors
       pollIntervalRef.current = initialPollInterval;
     } catch (err: any) {
       console.error("QR regenerate error:", err);
       setMessage(`Failed to regenerate ${qrType} QR.`);
       setShowRefresh(true);
+
+      // ✅ global error
+      if (axios.isAxiosError(err) && err.response?.status === 500) {
+        setError("Server error (500) while regenerating QR.");
+      } else {
+        setError("Failed to regenerate QR.");
+      }
     }
-  }, [userDoc, qrType, initialPollInterval]);
+  }, [userDoc, qrType, initialPollInterval, setError]);
 
   return {
     userDoc,

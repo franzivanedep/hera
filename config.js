@@ -8,6 +8,7 @@ if (!extra) {
 
 // API URL
 export const API_URL = extra.API_URL;
+export const EMAIL_API = extra.EMAIL_API;
 
 // Firebase configuration
 export const FIREBASE_CONFIG = {

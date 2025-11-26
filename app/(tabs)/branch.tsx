@@ -3,7 +3,15 @@ import BranchesView from "../../components/BranchesView";
 import { useBranches } from "../../components/logics/branchesLogic";
 
 const BranchesController = () => {
-  const { branches, selectedBranch, openBranchModal, closeBranchModal, openMap } = useBranches();
+  const { 
+    branches, 
+    selectedBranch, 
+    openBranchModal, 
+    closeBranchModal, 
+    openMap,
+    loading,
+    error
+  } = useBranches();
 
   return (
     <BranchesView
@@ -12,6 +20,8 @@ const BranchesController = () => {
       openBranchModal={openBranchModal}
       closeBranchModal={closeBranchModal}
       openMap={openMap}
+      loading={loading}   // <--- add this
+      error={error}       // <--- add this
     />
   );
 };

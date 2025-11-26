@@ -6,7 +6,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import axios from "axios";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { API_URL } from '../../config';
+import { API_URL } from "../../config";
 
 const BASE_URL = API_URL;
 
@@ -20,7 +20,8 @@ interface VoucherData {
 
 interface RewardQRResponse {
   qrId: string;
-  used?: boolean;
+  used: boolean;
+  rewardId: string;
 }
 
 export default function useVoucherLogic() {
@@ -44,6 +45,7 @@ export default function useVoucherLogic() {
   const [loading, setLoading] = useState<boolean>(true);
   const fetchedRef = useRef(false);
 
+  // Watch login
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
       setUid(user ? user.uid : null);
@@ -52,86 +54,102 @@ export default function useVoucherLogic() {
   }, []);
 
   useEffect(() => {
-    const fetchOrCreateRewardQR = async () => {
+    const loadQR = async () => {
       if (!uid || rewardId === "unknown" || fetchedRef.current) return;
       fetchedRef.current = true;
       setLoading(true);
 
+      const cacheKey = `rewardQR_${uid}_${rewardId}`;
+      let qr: string | null = null;
+
       try {
-        const cacheKey = `rewardQR_${uid}_${rewardId}`;
-        let qr: string | null = null;
-
-        // 1️⃣ Try cached QR
-        const cachedQr = await AsyncStorage.getItem(cacheKey);
-        if (cachedQr) {
+        // -----------------------------
+        // 1️⃣ CHECK CACHED QR — MUST MATCH REWARD ID
+        // -----------------------------
+        const cached = await AsyncStorage.getItem(cacheKey);
+        if (cached) {
           try {
-            const checkRes = await axios.get<RewardQRResponse>(
-              `${BASE_URL}/points/checkQR/${cachedQr}`
-            );
-            if (!checkRes.data.used) {
-              qr = cachedQr;
-              if (__DEV__) console.log("✅ Loaded QR from cache:", qr);
+            const res = await axios.get<RewardQRResponse>(`${BASE_URL}/points/checkQR/${cached}`);
+            if (res.data.rewardId !== rewardId) {
+              if (__DEV__) console.log("⚠ Cached QR rewardId mismatch. Creating new.");
+              qr = null;
+            } else if (!res.data.used) {
+              qr = cached;
+              if (__DEV__) console.log("✅ Using cached QR:", qr);
             } else {
-              if (__DEV__) console.log("⚠ Cached QR used, will create new.");
+              if (__DEV__) console.log("⚠ Cached QR used. Creating new.");
+              qr = null;
             }
           } catch {
-            if (__DEV__) console.log("⚠ /checkQR failed, will try server or create new QR");
+            if (__DEV__) console.log("⚠ Failed checking cached QR.");
+            qr = null;
           }
         }
 
-        // 2️⃣ Try server active QR if cache invalid
+        // -----------------------------
+        // 2️⃣ CHECK ACTIVE QR FROM SERVER — MUST MATCH REWARD ID
+        // -----------------------------
         if (!qr) {
           try {
-            const res = await axios.get<RewardQRResponse>(
-              `${BASE_URL}/points/active/rewards/${uid}`
-            );
-            if (res.data?.qrId && !res.data.used) {
-              qr = res.data.qrId;
-              if (__DEV__) console.log("✅ Loaded existing unused QR from server:", qr);
+            const res = await axios.get<RewardQRResponse[]>(`${BASE_URL}/points/active/rewards/${uid}`);
+            const match = res.data.find(r => r.rewardId === rewardId && r.used === false);
+            if (match) {
+              qr = match.qrId;
+              if (__DEV__) console.log("✅ Loaded active QR from server:", qr);
             } else {
-              if (__DEV__) console.log("⚠ No unused QR, will create new...");
+              if (__DEV__) console.log("⚠ No active QR for this reward. Creating new.");
             }
           } catch {
-            if (__DEV__) console.log("⚠ Failed to fetch active QR from server, creating new...");
+            if (__DEV__) console.log("⚠ Failed to fetch active QR. Creating new.");
           }
         }
 
-        // 3️⃣ Always create new QR if qr is still null
+        // -----------------------------
+        // 3️⃣ CREATE NEW QR — IF NONE MATCHED
+        // -----------------------------
         if (!qr) {
-          const createRes = await axios.post(`${BASE_URL}/points/createQR`, {
-            uid,
-            type: "rewards",
-            rewardId,
-          });
-          if (createRes.data?.qrId) {
-            qr = createRes.data.qrId;
-            if (__DEV__) console.log("✅ New QR created:", qr);
-          } else {
-            throw new Error("No QR returned from server");
+          try {
+            const createRes = await axios.post(`${BASE_URL}/points/createQR`, {
+              uid,
+              type: "rewards",
+              rewardId, // tell backend this QR belongs to THIS reward
+            });
+
+            if (createRes.data?.qrId) {
+              qr = createRes.data.qrId;
+              if (__DEV__) console.log("✅ NEW QR CREATED:", qr);
+            } else {
+              throw new Error("No QR returned from server");
+            }
+          } catch (err: any) {
+            if (__DEV__) console.error("❌ QR Create Error:", err.response?.data);
+            Alert.alert(
+              "Error",
+              err.response?.data?.message || "Failed to create QR"
+            );
+            return;
           }
         }
 
-        setQrId(qr);
+        // -----------------------------
+        // 4️⃣ SAVE TO CACHE
+        // -----------------------------
         if (qr) {
           await AsyncStorage.setItem(cacheKey, qr);
         }
+
+        setQrId(qr);
       } catch (err: any) {
-        if (__DEV__) console.error(
-          "Error fetching or creating reward QR:",
-          err.response?.data || err.message
-        );
-        Alert.alert(
-          "Error",
-          err.response?.data?.message || "Failed to fetch or create reward QR"
-        );
+        if (__DEV__) console.error("QR Load Error:", err.response?.data || err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchOrCreateRewardQR();
+    loadQR();
   }, [uid, rewardId]);
 
+  // Voucher details
   const voucherData: VoucherData = {
     merchant: "HERA NAIL LOUNGE & SPA",
     pointsUsed: Number(points),
@@ -142,22 +160,14 @@ export default function useVoucherLogic() {
 
   const copyCode = async () => {
     if (!qrId) return;
-    try {
-      await Clipboard.setStringAsync(qrId);
-      Alert.alert("Copied", "Voucher code copied to clipboard");
-    } catch {
-      Alert.alert("Error", "Failed to copy voucher code.");
-    }
+    await Clipboard.setStringAsync(qrId);
+    Alert.alert("Copied", "Voucher code copied");
   };
 
   const shareVoucher = async () => {
     if (!qrId) return;
-    try {
-      const shareText = `${voucherData.title}\nCode: ${qrId}\nValid until: ${voucherData.validUntil}\n${voucherData.message}`;
-      await Share.share({ message: shareText, title: voucherData.title });
-    } catch {
-      Alert.alert("Error", "Couldn't open share dialog.");
-    }
+    const shareText = `${voucherData.title}\nCode: ${qrId}\nValid until: ${voucherData.validUntil}\n${voucherData.message}`;
+    await Share.share({ message: shareText, title: voucherData.title });
   };
 
   const goHome = () => router.push("/");

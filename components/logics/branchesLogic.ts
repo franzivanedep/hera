@@ -1,48 +1,54 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Linking } from "react-native";
+import axios from "axios";
+import { API_URL } from "../../config";
+
+// Use your local IP for development
 
 export interface Branch {
   id: string;
   name: string;
   address: string;
-  image: any;
+  image?: string; // URL from backend
   services?: string[];
   openingHours?: string[];
   contact?: { phone: string; email: string };
 }
 
-export const branches: Branch[] = [
-  {
-    id: "1",
-    name: "HERA Nail Lounge - Sangandaan, Caloocan",
-    address: "443 A. Mabini St. Brgy. 10 Sangandaan, Caloocan, Philippines, 1421",
-    image: require("../../assets/images/heracal.png"),
-    services: ["Manicure", "Pedicure", "Nail Art"],
-    openingHours: ["Daily: 11am - 9pm"],
-    contact: { phone: "+63 991 474 490", email: "heranailloungeandspa@yahoo.com" },
-  },
-  {
-    id: "2",
-    name: "HERA Nail Lounge - Meycauayan Bulacan",
-    address: "583 Mc Arthur Highway, Bancal, Meycauayan Bulacan",
-    image: require("../../assets/images/herameyc.jpg"),
-    services: ["Manicure", "Pedicure", "Gel Nails"],
-    openingHours: ["Mon-Sun: 11am - 9pm"],
-    contact: { phone: "+63 960 252 0747", email: "heranailloungeandspa@yahoo.com" },
-  },
-  {
-    id: "3",
-    name: "HERA Nail Lounge - Concepcion, Malabon",
-    address: "234 Gen. Luna St., Concepcion, Malabon, Philippines, 1470",
-    image: require("../../assets/images/heramalabon.jpg"),
-    services: ["Manicure", "Pedicure", "Nail Extensions"],
-    openingHours: ["Mon-Sun: 11am - 9pm"],
-    contact: { phone: "+63 915 376 0784", email: "heranailloungeandspa@yahoo.com" },
-  },
-];
-
 export const useBranches = () => {
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch branches from backend
+  const fetchBranches = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get<Branch[]>(`${API_URL}/branches`);
+
+      // Normalize image URLs for React Native
+      const normalizedBranches = res.data.map(branch => ({
+        ...branch,
+        image: branch.image
+          ? branch.image.startsWith("http")
+            ? branch.image.replace("localhost:3001", "192.168.100.19:3001")
+            : `${API_URL}${branch.image.startsWith("/") ? "" : "/"}${branch.image}`
+          : undefined,
+      }));
+
+      setBranches(normalizedBranches);
+    } catch (err: any) {
+      console.error("Failed to fetch branches:", err);
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBranches();
+  }, []);
 
   const openBranchModal = (branch: Branch) => setSelectedBranch(branch);
   const closeBranchModal = () => setSelectedBranch(null);
@@ -55,8 +61,11 @@ export const useBranches = () => {
   return {
     branches,
     selectedBranch,
+    loading,
+    error,
     openBranchModal,
     closeBranchModal,
     openMap,
+    fetchBranches, // optional to refresh manually
   };
 };

@@ -1,3 +1,4 @@
+// BranchesView.tsx
 import React from "react";
 import {
   View,
@@ -8,9 +9,10 @@ import {
   ImageBackground,
   Modal,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Branch } from "../components/logics/branchesLogic";
+import { Branch } from "./logics/branchesLogic";
 
 interface Props {
   branches: Branch[];
@@ -18,6 +20,8 @@ interface Props {
   openBranchModal: (branch: Branch) => void;
   closeBranchModal: () => void;
   openMap: (address: string) => void;
+  loading: boolean;
+  error: string | null;
 }
 
 const BranchesView: React.FC<Props> = ({
@@ -26,7 +30,26 @@ const BranchesView: React.FC<Props> = ({
   openBranchModal,
   closeBranchModal,
   openMap,
+  loading,
+  error,
 }) => {
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color="#5A4634" />
+        <Text style={{ marginTop: 10 }}>Loading branches...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <Text style={{ color: "red" }}>Error: {error}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Our Branches</Text>
@@ -37,8 +60,12 @@ const BranchesView: React.FC<Props> = ({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card} activeOpacity={0.9}>
-            <ImageBackground source={item.image} style={styles.image} imageStyle={{ borderRadius: 20 }}>
+          <TouchableOpacity style={styles.card} activeOpacity={0.9} onPress={() => openBranchModal(item)}>
+            <ImageBackground
+              source={item.image ? { uri: item.image } : require("../assets/images/heracal.png")}
+              style={styles.image}
+              imageStyle={{ borderRadius: 20 }}
+            >
               <View style={styles.overlay} />
               <View style={styles.cardContent}>
                 <Text style={styles.branchName}>{item.name}</Text>
@@ -64,19 +91,26 @@ const BranchesView: React.FC<Props> = ({
 
               <Text style={styles.sectionTitle}>Services</Text>
               {selectedBranch?.services?.map((s, i) => (
-                <Text key={i} style={styles.modalText}>- {s}</Text>
+                <Text key={i} style={styles.modalText}>
+                  - {s}
+                </Text>
               ))}
 
               <Text style={styles.sectionTitle}>Opening Hours</Text>
               {selectedBranch?.openingHours?.map((h, i) => (
-                <Text key={i} style={styles.modalText}>{h}</Text>
+                <Text key={i} style={styles.modalText}>
+                  {h}
+                </Text>
               ))}
 
               <Text style={styles.sectionTitle}>Contact</Text>
               <Text style={styles.modalText}>Phone: {selectedBranch?.contact?.phone}</Text>
               <Text style={styles.modalText}>Email: {selectedBranch?.contact?.email}</Text>
 
-              <TouchableOpacity style={styles.mapButton} onPress={() => selectedBranch && openMap(selectedBranch.address)}>
+              <TouchableOpacity
+                style={styles.mapButton}
+                onPress={() => selectedBranch && openMap(selectedBranch.address)}
+              >
                 <Text style={styles.mapButtonText}>Open in Maps</Text>
               </TouchableOpacity>
 

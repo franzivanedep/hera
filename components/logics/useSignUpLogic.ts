@@ -4,8 +4,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Router } from "expo-router";
-import { API_URL } from "../../config"; // ✅ import from config
-
+import { EMAIL_API , API_URL } from "../../config"; 
 export interface SignUpLogic {
   email: string;
   setEmail: (val: string) => void;
@@ -74,7 +73,7 @@ export function useSignUpLogic(): SignUpLogic {
           "Too many attempts. Please wait before trying again."
         );
 
-      const res = await fetch(`${API_URL}/email/send`, {
+      const res = await fetch(`${EMAIL_API}/api/email/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ gmail: email.trim() }),
@@ -99,7 +98,7 @@ export function useSignUpLogic(): SignUpLogic {
     setErr(null);
 
     try {
-      const res = await fetch(`${API_URL}/email/verify`, {
+      const res = await fetch(`${EMAIL_API}/api/email/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ gmail: email.trim(), code }),
