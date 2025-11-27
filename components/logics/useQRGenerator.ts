@@ -122,6 +122,8 @@ export default function useQRGeneratorLogic(
       const res = await axios.post(`${BASE_URL}/points/createQR`, {
         uid: userDoc.id,
         type: qrType,
+        "rewardId": null
+
       });
       setQrId(res.data.qrId);
       setQrUsed(false);
