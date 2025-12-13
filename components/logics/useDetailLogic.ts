@@ -3,15 +3,15 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { onAuthStateChanged } from "firebase/auth";
 import axios from "axios";
 import { auth } from "@/lib/firebase";
-import { API_URL } from '../../config';
+import { API_URL } from "../../config";
 
-const BASE_URL = API_URL ;
+const BASE_URL = API_URL;
 
 export default function useRewardDetailLogic() {
   const params = useLocalSearchParams();
   const router = useRouter();
 
-  // ✅ Decode parameters safely
+  // Decode params
   const rewardId = params.rewardId ? decodeURIComponent(String(params.rewardId)) : "";
   const title = params.title ? decodeURIComponent(String(params.title)) : "";
   const image = params.image ? decodeURIComponent(String(params.image)) : "";
@@ -21,14 +21,13 @@ export default function useRewardDetailLogic() {
   const [userPoints, setUserPoints] = useState<number>(0);
   const [uid, setUid] = useState<string | null>(null);
   const [loadingModalVisible, setLoadingModalVisible] = useState(false);
-  const [voucherModalVisible, setVoucherModalVisible] = useState(false);
   const [notEnoughModalVisible, setNotEnoughModalVisible] = useState(false);
 
-  // ✅ Build full image URL
+  // Full image URL
   const imageUrl =
     image && !image.startsWith("http") ? `${BASE_URL}/uploads/${image}` : image;
 
-  // ✅ Get logged-in user UID (same logic as your QR feature)
+  // Get logged-in user UID and points
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -44,7 +43,7 @@ export default function useRewardDetailLogic() {
     return () => unsubscribe();
   }, []);
 
-  // ✅ Redeem logic
+  // Redeem logic
   const handleRedeem = async () => {
     if (!rewardId || !uid) {
       console.warn("Missing reward ID or user UID — cannot redeem.");
@@ -57,31 +56,50 @@ export default function useRewardDetailLogic() {
       return;
     }
 
-    // Proceed with redemption
-    setLoadingModalVisible(true);
-    setTimeout(() => {
-      setLoadingModalVisible(false);
-      setVoucherModalVisible(true);
-    }, 2000);
-  };
+    try {
+      // ✅ Check if reward is active for the user
+      const activeRes = await axios.get(`${BASE_URL}/points/active/rewards/${uid}`);
+      const activeIds: string[] = Array.isArray(activeRes.data)
+        ? activeRes.data.map((r: any) => r.rewardId ?? r)
+        : [];
 
-  // ✅ View voucher page
-  const handleViewVoucher = () => {
-    setVoucherModalVisible(false);
-    router.push({
-      pathname: "/voucher",
-      params: {
-        rewardId: encodeURIComponent(String(rewardId)),
-        title: encodeURIComponent(String(title)),
-        description: encodeURIComponent(String(description)),
-        points: encodeURIComponent(String(points)),
-        image: encodeURIComponent(String(image)),
-      },
-    });
+      if (activeIds.includes(rewardId)) {
+        // Reward already active → go straight to voucher
+        router.push({
+          pathname: "/voucher",
+          params: {
+            rewardId: encodeURIComponent(String(rewardId)),
+            title: encodeURIComponent(String(title)),
+            description: encodeURIComponent(String(description)),
+            points: encodeURIComponent(String(points)),
+            image: encodeURIComponent(String(image)),
+          },
+        });
+        return;
+      }
+
+      // Otherwise, show "redeeming" modal briefly
+      setLoadingModalVisible(true);
+      setTimeout(() => {
+        setLoadingModalVisible(false);
+        router.push({
+          pathname: "/voucher",
+          params: {
+            rewardId: encodeURIComponent(String(rewardId)),
+            title: encodeURIComponent(String(title)),
+            description: encodeURIComponent(String(description)),
+            points: encodeURIComponent(String(points)),
+            image: encodeURIComponent(String(image)),
+          },
+        });
+      }, 2000);
+    } catch (err) {
+      console.error("Error checking active reward:", err);
+      // Optionally show some error modal here
+    }
   };
 
   const handleBackHome = () => {
-    setVoucherModalVisible(false);
     router.push("/");
   };
 
@@ -93,11 +111,9 @@ export default function useRewardDetailLogic() {
     points,
     userPoints,
     loadingModalVisible,
-    voucherModalVisible,
     notEnoughModalVisible,
     setNotEnoughModalVisible,
     handleRedeem,
-    handleViewVoucher,
     handleBackHome,
   };
 }

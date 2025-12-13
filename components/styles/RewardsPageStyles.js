@@ -67,4 +67,21 @@ export default StyleSheet.create({
   footerSpace: {
     height: 100, // ✅ ensures safe scroll end spacing
   },
+activeBadge: {
+  position: "absolute",
+  top: 10,
+  right: 10,
+  backgroundColor: "#C9B79C", // soft beige
+  paddingHorizontal: 10,
+  paddingVertical: 4,
+  borderRadius: 12,
+  zIndex: 20,
+},
+
+activeBadgeText: {
+  color: "#5A4634", // darker brown text
+  fontSize: 11,
+  fontWeight: "bold",
+},
+
 });

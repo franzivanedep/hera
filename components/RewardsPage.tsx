@@ -12,15 +12,19 @@ import { useRouter } from "expo-router";
 import styles from "../components/styles/RewardsPageStyles";
 import useRewardsLogic from "../components/logics/useRewardLogic";
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
-
 const RewardsPage: React.FC = () => {
   const router = useRouter();
   const { rewards, loading } = useRewardsLogic();
 
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <ActivityIndicator size="large" color="#8B6F47" />
         <Text style={{ marginTop: 10 }}>Loading rewards...</Text>
       </View>
@@ -33,7 +37,7 @@ const RewardsPage: React.FC = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Header Image */}
+        {/* Header */}
         <View style={styles.headerCard}>
           <Image
             source={require("../assets/images/header.jpg")}
@@ -44,42 +48,45 @@ const RewardsPage: React.FC = () => {
 
         <Text style={styles.pageTitle}>Rewards</Text>
 
-        {/* Rewards List */}
-        {rewards.map((reward) => {
-          const imageUrl =
-            reward.image_url && !reward.image_url.startsWith("http")
-              ? `${BASE_URL}/uploads/${reward.image_url}`
-              : reward.image_url;
+        {/* Rewards */}
+        {rewards.map((reward) => (
+          <TouchableOpacity
+            key={reward.id}
+            style={styles.card}
+            activeOpacity={0.9}
+            onPress={() =>
+              router.push({
+                pathname: "/details",
+                params: {
+                  rewardId: String(reward.id),
+                  title: reward.name,
+                  description: reward.description,
+                  points: String(reward.points),
+                  image: reward.image_url,
+                },
+              })
+            }
+          >
+            <Image source={{ uri: reward.image_url }} style={styles.cardImage} />
 
-          return (
-            <TouchableOpacity
-              key={reward.id}
-              style={styles.card}
-              activeOpacity={0.9}
-              onPress={() =>
-                router.push({
-                  pathname: "/details",
-                  params: {
-                    rewardId: encodeURIComponent(String(reward.id)), // ✅ Firestore doc.id
-                    title: encodeURIComponent(String(reward.name)),
-                    description: encodeURIComponent(String(reward.description)),
-                    points: encodeURIComponent(String(reward.points)),
-                    image: encodeURIComponent(String(reward.image_url)),
-                  },
-                })
-              }
-            >
-              <Image source={{ uri: imageUrl }} style={styles.cardImage} />
-              <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{reward.name}</Text>
-                <View style={styles.pointsRow}>
-                  <Ionicons name="star" size={14} color="#8B6F47" />
-                  <Text style={styles.pointsText}>{reward.points} pts</Text>
-                </View>
+            {/* ACTIVE BADGE */}
+            {reward.is_active_reward && (
+              <View style={styles.activeBadge}>
+                <Text style={styles.activeBadgeText}>ACTIVE</Text>
               </View>
-            </TouchableOpacity>
-          );
-        })}
+            )}
+
+            <View style={styles.cardContent}>
+              <Text style={styles.cardTitle}>{reward.name}</Text>
+              <View style={styles.pointsRow}>
+                <Ionicons name="star" size={14} color="#8B6F47" />
+                <Text style={styles.pointsText}>
+                  {reward.points} pts
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))}
 
         <View style={styles.footerSpace} />
       </ScrollView>

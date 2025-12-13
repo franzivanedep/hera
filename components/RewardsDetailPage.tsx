@@ -20,15 +20,11 @@ const RewardDetail: React.FC = () => {
     points,
     userPoints,
     loadingModalVisible,
-    voucherModalVisible,
     notEnoughModalVisible,
     setNotEnoughModalVisible,
     handleRedeem,
-    handleViewVoucher,
     handleBackHome,
   } = useRewardDetailLogic();
-
- 
 
   return (
     <View style={styles.container}>
@@ -57,7 +53,7 @@ const RewardDetail: React.FC = () => {
         <Text style={styles.redeemText}>Redeem</Text>
       </TouchableOpacity>
 
-      {/* Modals */}
+      {/* Loading Modal */}
       <Modal transparent visible={loadingModalVisible} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -67,38 +63,7 @@ const RewardDetail: React.FC = () => {
         </View>
       </Modal>
 
-      <Modal transparent visible={voucherModalVisible} animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.voucherContent}>
-            <View style={styles.iconContainer}>
-              <Ionicons name="checkmark" size={48} color="#FFF" />
-            </View>
-            <Text style={styles.voucherTitle}>Yaay! Your E-Voucher is Ready!</Text>
-            <Text style={styles.voucherSubtitle}>
-              Flash this E-Voucher at the store to redeem your reward.
-            </Text>
-
-            <TouchableOpacity
-              style={styles.voucherButton}
-              onPress={handleViewVoucher}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.voucherButtonText}>View E-Voucher</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.voucherButton, { backgroundColor: "#C9B79C", marginTop: 10 }]}
-              onPress={handleBackHome}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.voucherButtonText, { color: "#5A4634" }]}>
-                Back to Home
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
+      {/* Not Enough Points Modal */}
       <Modal transparent visible={notEnoughModalVisible} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.voucherContent}>

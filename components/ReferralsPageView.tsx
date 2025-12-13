@@ -52,9 +52,12 @@ export const ReferralsPageView: React.FC<ReferralsPageViewProps> = ({
           <Text style={styles.highlight}>50 points</Text>
         </Text>
 
-     
-
-   
+        {/* NEW RULES TEXT */}
+        <Text style={styles.description}>
+          Invite up to <Text style={styles.highlight}>3 friends</Text>. Earn{" "}
+          <Text style={styles.highlight}>+50 points</Text> when your friend
+          signs up and scans their first QR code.
+        </Text>
       </View>
 
       {/* Referral Code */}
@@ -84,9 +87,6 @@ export const ReferralsPageView: React.FC<ReferralsPageViewProps> = ({
           Share your beauty, share your points!
         </Text>
       </View>
-
-
-
     </ScrollView>
   );
 };
@@ -117,13 +117,28 @@ const styles = StyleSheet.create({
   },
   pointsValue: { fontSize: 64, fontWeight: "800", color: "#8b5e3c" },
   pointsLabel: { flexDirection: "row", alignItems: "center", marginTop: 4 },
-  pointsText: { fontSize: 18, fontWeight: "600", color: "#8b5e3c", marginRight: 4 },
-  inviteText: { fontSize: 16, color: "#5c4632", marginTop: 20, textAlign: "center", fontWeight: "600" },
+  pointsText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#8b5e3c",
+    marginRight: 4,
+  },
+  inviteText: {
+    fontSize: 16,
+    color: "#5c4632",
+    marginTop: 20,
+    textAlign: "center",
+    fontWeight: "600",
+  },
   highlight: { color: "#8b5e3c", fontWeight: "700" },
-  offerTimer: { flexDirection: "row", alignItems: "center", marginTop: 6 },
-  offerText: { fontSize: 13, color: "#6b5b4b", marginLeft: 6 },
-  timer: { color: "#8b5e3c", fontWeight: "600" },
-  description: { fontSize: 13, color: "#6b5b4b", marginTop: 10, textAlign: "center", lineHeight: 18 },
+  description: {
+    fontSize: 13,
+    color: "#6b5b4b",
+    marginTop: 10,
+    textAlign: "center",
+    lineHeight: 18,
+    paddingHorizontal: 20,
+  },
   codeCard: {
     backgroundColor: "#fff",
     padding: 16,
@@ -143,10 +158,24 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  code: { fontFamily: "monospace", fontSize: 16, fontWeight: "600", color: "#8b5e3c" },
+  code: {
+    fontFamily: "monospace",
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#8b5e3c",
+  },
   copyButton: { flexDirection: "row", alignItems: "center" },
-  copyText: { color: "#8b5e3c", marginLeft: 6, fontWeight: "500", fontSize: 13 },
-  divider: { flexDirection: "row", alignItems: "center", marginTop: 35 },
+  copyText: {
+    color: "#8b5e3c",
+    marginLeft: 6,
+    fontWeight: "500",
+    fontSize: 13,
+  },
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 35,
+  },
   iconCircle: {
     width: 36,
     height: 36,
@@ -157,24 +186,4 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   dividerText: { color: "#6b5b4b", fontSize: 13, fontWeight: "600" },
-  shareRow: { flexDirection: "row", justifyContent: "space-around", width: "100%", marginTop: 20 },
-  shareButtonWrapper: { alignItems: "center" },
-  shareButton: {
-    width: 48,
-    height: 48,
-    backgroundColor: "#8b5e3c",
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 2,
-  },
-  shareLabel: { marginTop: 6, fontSize: 12, color: "#6b5b4b", fontWeight: "500" },
-  footerText: {
-    marginTop: 30,
-    fontSize: 12,
-    color: "#a08b75",
-    textAlign: "center",
-    marginBottom: 50,
-    lineHeight: 18,
-  },
 });
