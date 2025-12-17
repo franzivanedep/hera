@@ -1,10 +1,12 @@
-// hooks/useSignUpLogic.ts
 import { useState, useEffect } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Router } from "expo-router";
-import { EMAIL_API , API_URL } from "../../config"; 
+import { EMAIL_API, API_URL } from "../../config";
+
+const POLICY_VERSION = "1.0";
+
 export interface SignUpLogic {
   email: string;
   setEmail: (val: string) => void;
@@ -18,71 +20,70 @@ export interface SignUpLogic {
   cooldown: number;
   sendCount: number;
   MAX_SENDS: number;
+  agreed: boolean;
+  setAgreed: (val: boolean) => void;
   sendCode: () => Promise<void>;
   verifyAndSignUp: (router: Router) => Promise<void>;
 }
 
 export function useSignUpLogic(): SignUpLogic {
-  const [email, setEmail] = useState<string>("");
-  const [pw, setPw] = useState<string>("");
-  const [code, setCode] = useState<string>("");
-  const [sent, setSent] = useState<boolean>(false);
-  const [busy, setBusy] = useState<boolean>(false);
+  const [email, setEmail] = useState("");
+  const [pw, setPw] = useState("");
+  const [code, setCode] = useState("");
+  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [cooldown, setCooldown] = useState<number>(0);
-  const [sendCount, setSendCount] = useState<number>(0);
+  const [cooldown, setCooldown] = useState(0);
+  const [sendCount, setSendCount] = useState(0);
+  const [agreed, setAgreed] = useState(false);
 
   const MAX_SENDS = 3;
   const COOLDOWN_TIME = 60;
 
-  // Timer
   useEffect(() => {
     if (cooldown <= 0) return;
-    const timer = setInterval(() => setCooldown((prev) => prev - 1), 1000);
+    const timer = setInterval(() => setCooldown((c) => c - 1), 1000);
     return () => clearInterval(timer);
   }, [cooldown]);
 
-  const isValidEmail = (email: string): boolean =>
+  const isValidEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  async function emailExists(email: string): Promise<boolean> {
+  async function emailExists(email: string) {
     const res = await fetch(`${API_URL}/users/check-gmail`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ gmail: email }),
     });
-
-    if (!res.ok) throw new Error("Failed to check email existence.");
     const data = await res.json();
     return data.exists;
   }
 
-  async function sendCode(): Promise<void> {
-    if (!email.trim()) return setErr("Please enter your email first.");
-    if (!isValidEmail(email.trim()))
-      return setErr("Please enter a valid email address.");
+  async function sendCode() {
+    if (!email.trim()) return setErr("Please enter your email.");
+    if (!isValidEmail(email)) return setErr("Invalid email address.");
+    if (!agreed)
+      return setErr("You must agree to the Privacy Policy to use this app.");
 
     setBusy(true);
     setErr(null);
 
     try {
-      const exists = await emailExists(email.trim());
-      if (exists) throw new Error("This email is already registered.");
+      if (await emailExists(email))
+        throw new Error("This email is already registered.");
       if (sendCount >= MAX_SENDS)
-        throw new Error(
-          "Too many attempts. Please wait before trying again."
-        );
+        throw new Error("Too many attempts. Please wait.");
 
       const res = await fetch(`${EMAIL_API}/api/email/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gmail: email.trim() }),
+        body: JSON.stringify({ gmail: email }),
       });
 
       if (!res.ok) throw new Error("Failed to send verification email.");
 
       setSent(true);
-      setSendCount((prev) => prev + 1);
+      setSendCount((c) => c + 1);
       setCooldown(COOLDOWN_TIME);
     } catch (e: any) {
       setErr(e.message);
@@ -91,8 +92,8 @@ export function useSignUpLogic(): SignUpLogic {
     }
   }
 
-  async function verifyAndSignUp(router: Router): Promise<void> {
-    if (!code.trim()) return setErr("Please enter the verification code.");
+  async function verifyAndSignUp(router: Router) {
+    if (!code.trim()) return setErr("Enter the verification code.");
 
     setBusy(true);
     setErr(null);
@@ -101,28 +102,27 @@ export function useSignUpLogic(): SignUpLogic {
       const res = await fetch(`${EMAIL_API}/api/email/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gmail: email.trim(), code }),
+        body: JSON.stringify({ gmail: email, code }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Verification failed");
+      if (!res.ok) throw new Error("Verification failed.");
 
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email.trim(),
-        pw
-      );
-      const uid = userCredential.user.uid;
+      const cred = await createUserWithEmailAndPassword(auth, email, pw);
+      const uid = cred.user.uid;
 
       await AsyncStorage.setItem("uid", uid);
 
-      const backendRes = await fetch(`${API_URL}/users/newUser`, {
+      await fetch(`${API_URL}/users/newUser`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gmail: email.trim(), uid }),
+        body: JSON.stringify({
+          gmail: email,
+          uid,
+          policyAccepted: true,
+          policyVersion: POLICY_VERSION,
+          policyAcceptedAt: new Date().toISOString(),
+        }),
       });
-
-      if (!backendRes.ok) throw new Error("Failed to save user in backend");
 
       router.replace("/");
     } catch (e: any) {
@@ -145,6 +145,8 @@ export function useSignUpLogic(): SignUpLogic {
     cooldown,
     sendCount,
     MAX_SENDS,
+    agreed,
+    setAgreed,
     sendCode,
     verifyAndSignUp,
   };

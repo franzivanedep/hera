@@ -1,10 +1,13 @@
-// views/SignUpView.tsx
-import React from "react";
+import React, { useState } from "react";
 import {
   Text,
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
+  View,
+  Modal,
+  ScrollView,
+  Pressable,
 } from "react-native";
 import { Router } from "expo-router";
 import { SignUpLogic } from "../components/logics/useSignUpLogic";
@@ -29,8 +32,12 @@ export default function SignUpView({
   MAX_SENDS,
   sendCode,
   verifyAndSignUp,
+  agreed,
+  setAgreed,
   router,
 }: SignUpViewProps) {
+  const [showPolicy, setShowPolicy] = useState(false);
+
   return (
     <SafeAreaView
       style={{
@@ -57,6 +64,7 @@ export default function SignUpView({
           <TextInput
             placeholder="Email"
             value={email}
+            autoCapitalize="none"
             onChangeText={setEmail}
             style={{
               backgroundColor: "#F3EDE3",
@@ -65,6 +73,7 @@ export default function SignUpView({
               marginBottom: 12,
             }}
           />
+
           <TextInput
             placeholder="Password"
             secureTextEntry
@@ -76,15 +85,57 @@ export default function SignUpView({
               borderRadius: 12,
             }}
           />
+
+          {/* AGREEMENT */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "flex-start",
+              marginTop: 14,
+            }}
+          >
+            <Pressable
+              onPress={() => setAgreed(!agreed)}
+              style={{
+                width: 22,
+                height: 22,
+                borderRadius: 6,
+                borderWidth: 2,
+                borderColor: "#5A4634",
+                alignItems: "center",
+                justifyContent: "center",
+                marginRight: 10,
+                marginTop: 3,
+                backgroundColor: agreed ? "#5A4634" : "transparent",
+              }}
+            >
+              {agreed && (
+                <Text style={{ color: "#FAF9F7", fontSize: 14 }}>✓</Text>
+              )}
+            </Pressable>
+
+            <Text style={{ flex: 1, fontSize: 13, color: "#6A5C50" }}>
+              I have read and agree to the{" "}
+              <Text
+                style={{ fontWeight: "600", color: "#5A4634" }}
+                onPress={() => setShowPolicy(true)}
+              >
+                Privacy Policy and Terms of Service
+              </Text>
+              . If you do not agree, you may not use this app.
+            </Text>
+          </View>
+
           <TouchableOpacity
             onPress={sendCode}
-            disabled={busy || cooldown > 0}
+            disabled={busy || cooldown > 0 || !agreed}
             style={{
-              backgroundColor: busy || cooldown > 0 ? "#A19B93" : "#5A4634",
+              backgroundColor:
+                busy || cooldown > 0 || !agreed ? "#A19B93" : "#5A4634",
               padding: 15,
               borderRadius: 12,
               alignItems: "center",
-              marginTop: 10,
+              marginTop: 16,
             }}
           >
             {busy ? (
@@ -108,19 +159,6 @@ export default function SignUpView({
           >
             {`Attempts left: ${MAX_SENDS - sendCount}`}
           </Text>
-
-          <Text
-            style={{
-              textAlign: "center",
-              fontSize: 12,
-              color: "#6A5C50",
-              marginTop: 10,
-            }}
-          >
-            By signing up, you agree to our Terms & Privacy Policy. We only
-            collect your Gmail for account verification and do not store any
-            other personal information.
-          </Text>
         </>
       ) : (
         <>
@@ -136,6 +174,7 @@ export default function SignUpView({
               marginBottom: 12,
             }}
           />
+
           <TouchableOpacity
             onPress={() => verifyAndSignUp(router)}
             disabled={busy}
@@ -158,12 +197,60 @@ export default function SignUpView({
       )}
 
       {err && (
-        <Text
-          style={{ color: "#b3261e", textAlign: "center", marginTop: 10 }}
-        >
+        <Text style={{ color: "#b3261e", textAlign: "center", marginTop: 10 }}>
           {err}
         </Text>
       )}
+
+      {/* PRIVACY POLICY MODAL */}
+      <Modal visible={showPolicy} animationType="slide">
+        <SafeAreaView style={{ flex: 1, padding: 20 }}>
+          <Text
+            style={{
+              fontSize: 22,
+              fontWeight: "700",
+              textAlign: "center",
+              marginBottom: 10,
+            }}
+          >
+            Privacy Policy
+          </Text>
+
+          <ScrollView>
+            <Text style={{ lineHeight: 20 }}>
+              {
+                "This Privacy Notice for HERA Nail Lounge & Spa (\"we,\" \"us,\" or \"our\") explains how and why we collect, use, and protect your personal information.\n\n"
+              }
+              We collect email addresses and passwords for account creation and
+              authentication. Device and usage data may be collected for
+              analytics, security, and app functionality.
+              {"\n\n"}
+              Your data is not sold. Information is retained only as long as
+              necessary and protected using reasonable safeguards.
+              {"\n\n"}
+              Contact: heranailloungeandspa@yahoo.com
+            </Text>
+          </ScrollView>
+
+          <TouchableOpacity
+            onPress={() => {
+              setAgreed(true);
+              setShowPolicy(false);
+            }}
+            style={{
+              backgroundColor: "#5A4634",
+              padding: 15,
+              borderRadius: 12,
+              alignItems: "center",
+              marginTop: 12,
+            }}
+          >
+            <Text style={{ color: "#FAF9F7", fontWeight: "700" }}>
+              Agree
+            </Text>
+          </TouchableOpacity>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }

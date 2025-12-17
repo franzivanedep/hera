@@ -76,9 +76,7 @@ const handleReferralSubmit = async () => {
               <Text style={styles.greeting}>Hi, {userName}</Text>
               <Text style={styles.subText}>HERA NAIL LOUNGE & SPA</Text>
             </View>
-            <TouchableOpacity style={styles.bellButton}>
-              <Ionicons name="notifications-outline" size={24} color="#fff" />
-            </TouchableOpacity>
+          
           </View>
         </ImageBackground>
 
@@ -98,7 +96,7 @@ const handleReferralSubmit = async () => {
           <View style={styles.actionGrid}>
             {actions.map((item, index) => {
               const isDisabled =
-                item.text === "Survey" || item.text === "Scan QR Code";
+                item.text === "Survey";
 
               return (
                 <TouchableOpacity

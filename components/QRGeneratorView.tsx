@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
 interface Props {
   qrPayload: string | null;
@@ -11,23 +12,36 @@ interface Props {
 }
 
 const QRGeneratorView: React.FC<Props> = ({ qrPayload, qrUsed, showRefresh, onRegenerate }) => {
+  const router = useRouter();
+
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
+        {/* Back Button */}
+        <TouchableOpacity style={styles.backButton} onPress={() => router.push("/")}>
+          <Text style={styles.backButtonText}>← Back</Text>
+        </TouchableOpacity>
+
         <Text style={styles.title}>Your QR Code</Text>
 
+        {/* QR Card */}
         <View style={styles.qrCard}>
           {qrPayload && !qrUsed ? (
             <QRCode value={qrPayload} size={220} color="#5A4634" />
           ) : (
             <View style={styles.placeholder}>
+              <ActivityIndicator size="large" color="#5A4634" />
               <Text style={styles.placeholderText}>Generating QR...</Text>
             </View>
           )}
         </View>
 
         {qrPayload && !qrUsed && (
-          <Text style={styles.qrIdText}>{qrPayload}</Text>
+          <>
+            <Text style={styles.subtitle}>Scan this QR to earn 20 points</Text>
+            <Text style={styles.qrIdText}>Or show this code to the crew:</Text>
+            <Text style={styles.qrIdCode}>{qrPayload}</Text>
+          </>
         )}
 
         {showRefresh && (
@@ -45,7 +59,7 @@ export default QRGeneratorView;
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#FAF6F0",
+    backgroundColor: "#F7F3EE", // soft beige background
   },
   container: {
     flex: 1,
@@ -53,23 +67,42 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 20,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
+  backButton: {
+    position: "absolute",
+    top: 20,
+    left: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
+  },
+  backButtonText: {
+    fontSize: 18,
     color: "#5A4634",
-    marginBottom: 50,
+    fontWeight: "600",
+  },
+  title: {
+    fontSize: 30,
+    fontWeight: "800",
+    color: "#5A4634",
+    marginBottom: 30,
   },
   qrCard: {
     width: 280,
     height: 280,
-    borderRadius: 28,
-    backgroundColor: "#FFF8EE",
+    borderRadius: 32,
+    backgroundColor: "#FFF",
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 20,
-    shadowOffset: { width: 0, height: 5 },
+    shadowOffset: { width: 0, height: 10 },
     elevation: 10,
     marginBottom: 20,
   },
@@ -78,16 +111,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   placeholderText: {
+    marginTop: 12,
     color: "#BFAF8F",
     fontSize: 16,
     fontWeight: "500",
   },
+  subtitle: {
+    marginTop: 10,
+    color: "#5A4634",
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
+  },
   qrIdText: {
-    marginTop: 15,
+    marginTop: 8,
     color: "#5A4634",
     fontSize: 14,
     textAlign: "center",
     fontWeight: "500",
+  },
+  qrIdCode: {
+    marginTop: 4,
+    color: "#5A4634",
+    fontSize: 16,
+    fontWeight: "700",
+    textAlign: "center",
   },
   button: {
     marginTop: 30,
@@ -96,7 +144,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     borderRadius: 18,
     shadowColor: "#000",
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.2,
     shadowRadius: 15,
     shadowOffset: { width: 0, height: 5 },
     elevation: 6,

@@ -1,8 +1,6 @@
 // useTabLayoutLogic.ts
 import { Ionicons } from '@expo/vector-icons';
-import { View } from 'react-native';
 import React from 'react';
-import styles from '../styles/TabStyles';  
 
 export const useTabLayoutLogic = () => {
   return {
@@ -18,19 +16,11 @@ export const useTabLayoutLogic = () => {
         name: 'branch',
         title: 'Branch',
         icon: (color: string, focused: boolean) => (
- <Ionicons
-      name={focused ? 'storefront' : 'storefront-outline'}
-      size={24}
-      color={color}
-    />        ),
-      },
-      {
-        name: 'qr',
-        title: 'QR',
-        icon: () => (
-          <View style={styles.qrButton}>
-            <Ionicons name="qr-code-outline" size={30} color="#fff" />
-          </View>
+          <Ionicons
+            name={focused ? 'storefront' : 'storefront-outline'}
+            size={24}
+            color={color}
+          />
         ),
       },
       {

@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from "react-native";
 import { SafeAreaView} from "react-native-safe-area-context";
 
@@ -111,20 +112,6 @@ const LoginView: React.FC<LoginViewProps> = ({
               <Text style={styles.forgot}>Forgot password?</Text>
             </TouchableOpacity>
 
-            <Text style={styles.orText}>or</Text>
-
-          <TouchableOpacity
-  style={styles.googleButton}
-  onPress={async () => {
-    console.log("Button pressed, calling promptAsync...");
-    const result = await promptAsync();
-    console.log("promptAsync result:", result);
-  }}
-  disabled={!request || busy}
->
-  <Text style={styles.googleText}>Continue with Google</Text>
-</TouchableOpacity>
-
 
             <Text style={styles.signupRow}>
               Don’t have an account?{" "}
@@ -133,10 +120,23 @@ const LoginView: React.FC<LoginViewProps> = ({
               </Text>
             </Text>
 
-            <Text style={styles.footerText}>
-              By continuing, you agree to our <Text style={styles.link}>Terms</Text> &{" "}
-              <Text style={styles.link}>Privacy Policy</Text>.
-            </Text>
+          <Text style={styles.footerText}>
+  By continuing, you agree to our{" "}
+  <Text
+    style={styles.link}
+    onPress={() => Linking.openURL("https://commi2adminside-djsg.vercel.app/terms")}
+  >
+    Terms
+  </Text>{" "}
+  &{" "}
+  <Text
+    style={styles.link}
+    onPress={() => Linking.openURL("https://commi2adminside-djsg.vercel.app/terms")}
+  >
+    Privacy Policy
+  </Text>
+  .
+</Text>
           </View>
         </KeyboardAvoidingView>
       </ImageBackground>

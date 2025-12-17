@@ -19,10 +19,14 @@ import styles from "../components/styles/UserPageStyles";
 const { width } = Dimensions.get("window");
 
 // ---------------------------------------------------------
-// ❌ Add which labels you want to disable here
-// Example: ["Settings", "Help", "Legal", "App Tour"]
+// ❌ Features NOT ready for production (hidden from UI)
 // ---------------------------------------------------------
-const disabledButtons = ["Redemptions", "Other Activities", "Expired Points", "Redeem a Voucher"];
+const hiddenButtons = [
+  "Redemptions",
+  "Other Activities",
+  "Expired Points",
+  "Redeem a Voucher",
+];
 // ---------------------------------------------------------
 
 interface MenuItem {
@@ -89,34 +93,36 @@ const UserPage: React.FC = () => {
     ]);
 
   // -----------------------------
-  // Modified Section Renderer
+  // Section Renderer (HIDDEN ITEMS REMOVED)
   // -----------------------------
-  const renderSection = (title: string, items: MenuItem[]) => (
-    <View style={{ marginBottom: 24 }}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          width > 800 && { fontSize: 18, marginLeft: 10 },
-        ]}
-      >
-        {title}
-      </Text>
+  const renderSection = (title: string, items: MenuItem[]) => {
+    const visibleItems = items.filter(
+      (item) => !hiddenButtons.includes(item.label)
+    );
 
-      <View style={styles.iconGrid}>
-        {items.map((item, index) => {
-          const isDisabled = disabledButtons.includes(item.label);
+    if (visibleItems.length === 0) return null;
 
-          return (
+    return (
+      <View style={{ marginBottom: 24 }}>
+        <Text
+          style={[
+            styles.sectionTitle,
+            width > 800 && { fontSize: 18, marginLeft: 10 },
+          ]}
+        >
+          {title}
+        </Text>
+
+        <View style={styles.iconGrid}>
+          {visibleItems.map((item, index) => (
             <TouchableOpacity
               key={index}
               style={[
                 styles.iconItem,
                 width > 800 && { width: "20%", marginVertical: 14 },
-                isDisabled && { opacity: 0.4 },
               ]}
-              activeOpacity={isDisabled ? 1 : 0.7}
+              activeOpacity={0.7}
               onPress={() => {
-                if (isDisabled) return; // Prevent press
                 const key = routeMap[item.label];
                 if (key) go(key);
               }}
@@ -135,11 +141,11 @@ const UserPage: React.FC = () => {
                 {item.label}
               </Text>
             </TouchableOpacity>
-          );
-        })}
+          ))}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <ScrollView

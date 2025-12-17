@@ -20,7 +20,7 @@ export type Promo = {
 export type ActionItem = {
   icon: string;
   text: string;
-  route: "/referrals" | null;
+  route: "/user/transactions" | "/referrals" | "/qr" | null;
 };
 
 const BASE_URL = API_URL;
@@ -179,9 +179,10 @@ export default function useRewardsPageLogic() {
   }, [promos.length]);
 
   const actions: ActionItem[] = [
-    { icon: "document-text-outline", text: "Survey", route: null },
-    { icon: "qr-code-outline", text: "Scan QR Code", route: null },
-    { icon: "people-outline", text: "Invite Friends", route: "/referrals" },
+   { icon: "receipt-outline", text: "Transactions", route: "/user/transactions" },
+  { icon: "qr-code-outline", text: "Show QR", route: "/qr"},
+
+  { icon: "people-outline", text: "Invite Friends", route: "/referrals" },
   ];
 
   return {

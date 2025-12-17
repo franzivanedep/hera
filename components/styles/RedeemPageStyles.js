@@ -293,5 +293,27 @@ modalButtonText: {
   color: "#fff",
   fontWeight: "bold",
 },
+// Add this to your styles (or adjust existing ones)
+levelCircleRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  paddingHorizontal: 20,
+  marginBottom: 25,
+},
+
+levelCircleContainer: {
+  marginRight: 15, // space between circle and action grid
+  justifyContent: "center",
+  alignItems: "center",
+},
+
+// Optional: tweak the circle size for better alignment
+levelCircleText: {
+  position: "absolute",
+  fontWeight: "bold",
+  fontSize: 14,
+  color: "#4C3C2E",
+  textAlign: "center",
+},
 
 });
